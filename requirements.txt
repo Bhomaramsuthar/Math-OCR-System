@@ -1,0 +1,12 @@
+opencv-python
+numpy
+pillow
+torch
+pix2tex
+sympy
+fastapi
+uvicorn
+pymongo
+matplotlib
+jupyter
+python-multipart
