@@ -10,3 +10,18 @@ pymongo
 matplotlib
 jupyter
 python-multipart
+
+# Web Framework & Server
+fastapi==0.103.2
+uvicorn==0.23.2
+python-multipart==0.0.6
+
+# Machine Learning & OCR
+pix2tex==0.1.0
+opencv-python==4.8.1.78
+torch==2.0.1 
+
+# Parsing & Database
+sympy==1.12
+antlr4-python3-runtime==4.11
+pymongo==4.5.0
