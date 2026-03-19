@@ -1,7 +1,13 @@
+import os
 from pymongo import MongoClient
-from datetime import datetime
+from datetime import datetime, timezone
+from dotenv import load_dotenv
 
-MONGO_URI = "mongodb://localhost:27017/"
+# Load the environment variable from the .env file
+load_dotenv()
+
+#Safely fetch the URI . if not found it default sto the localhost 
+MONGO_URI = os.getenv("MONGODB_URI","mongodb://localhost:27017/")
 client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=3000)
 
 db = client["math_ocr_db"]
@@ -12,7 +18,7 @@ def save_equation(parsed_data):
     takes the structured dictionary from ouur parser , adds a timestamp, and saves it to MongoDB.
     """
     try:
-        parsed_data["created_at"] = datetime.utcnow().isoformat()
+        parsed_data["created_at"] = datetime.now(timezone.utc).isoformat()
 
         result = equations_collection.insert_one(parsed_data)
 
