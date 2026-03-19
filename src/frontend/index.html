@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math OCR System</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <link rel="stylesheet" href="style.css">
+</head> 
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>Math OCR Engine</h1>
+            <p>Upload an image of a mathematical equation to extract and render it.</p>
+            
+            <div class="upload-section">
+                <input type="file" id="imageInput" accept="image/*">
+                <button id="uploadBtn">Extract Equation</button>
+            </div>
+            
+            <div id="resultBox" class="hidden">
+                <h3>Rendered Output:</h3>
+                <div id="mathDisplay" class="math-render"></div>
+                
+                <div class="data-section">
+                    <p><strong>Raw LaTeX:</strong> <br><code id="rawLatex"></code></p>
+                    <p><small>Database ID: <span id="dbId"></span></small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

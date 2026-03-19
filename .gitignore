@@ -1,5 +1,8 @@
 # Python environments and cache
 venv/
+.env
+
+#python
 __pycache__/
 *.pyc
 
@@ -8,3 +11,4 @@ __pycache__/
 
 # System files
 .DS_Store
+Thumbs.db
