@@ -12,3 +12,15 @@ __pycache__/
 # System files
 .DS_Store
 Thumbs.db
+# Environments
+venv/
+__pycache__/
+
+# AI Model Weights
+*.pth
+*.safetensors
+*.bin
+*.pkl
+
+# Environment Variables
+.env

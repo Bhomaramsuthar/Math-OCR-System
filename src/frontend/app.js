@@ -7,7 +7,7 @@ const rawLatex = document.getElementById('rawLatex');
 const dbId = document.getElementById('dbId');
 
 // API Endpoint (Make sure your FastAPI server is running on port 8000!)
-const API_URL = 'http://localhost:8000/upload-equation';
+const API_URL = 'http://127.00.1:8000/upload-equation';
 
 uploadBtn.addEventListener('click', async () => {
     // 1. Check if a file was selected
@@ -26,41 +26,50 @@ uploadBtn.addEventListener('click', async () => {
     const formData = new FormData();
     formData.append('file', file);
 
-    try {
-        // 4. Send the POST request to our backend
+   try {
+        console.log("1. Sending request...");
         const response = await fetch(API_URL, {
             method: 'POST',
             body: formData
         });
 
+        console.log("2. Request finished. Status:", response.status);
         const data = await response.json();
-
-        console.log("Server Response:", data);
+        console.log("3. Raw Data from Server:", data);
 
         if (data.status === 'success') {
-            // 5. Unhide the result box
+            console.log("4. Status is success. Unhiding box...");
             resultBox.classList.remove('hidden');
 
-            // 6. Populate the raw data
+            console.log("5. Updating text fields...");
             dbId.innerText = data.database_id;
-            rawLatex.innerText = data.data.latex;
+            
+            // Safety check: Does data.data.latex actually exist?
+            const latexString = data.data.latex || data.data.raw_latex || "NO LATEX FOUND";
+            rawLatex.innerText = latexString;
 
-            // 7. Render the Math using KaTeX!
-            // We use displayMode: true to make it big and centered
-            katex.render(data.data.latex, mathDisplay, {
-                throwOnError: false,
-                displayMode: true 
-            });
+            console.log("6. Rendering KaTeX...");
+            try {
+                katex.render(latexString, mathDisplay, {
+                    throwOnError: false,
+                    displayMode: true 
+                });
+                console.log("7. KaTeX rendered successfully!");
+            } catch (katexErr) {
+                console.error("KATEX CRASHED:", katexErr);
+            }
+            
         } else {
+            console.error("Server returned an error status:", data);
             alert("Error from server: " + data.message);
         }
 
     } catch (error) {
-        console.error("Fetch error:", error);
-        alert("Could not connect to the server. Is FastAPI running?");
+        console.error("CRITICAL FETCH ERROR:", error);
+        alert("Fetch failed. Check the F12 console.");
     } finally {
-        // 8. Reset the button
         uploadBtn.innerText = originalText;
         uploadBtn.disabled = false;
+        console.log("8. Button reset.");
     }
 });

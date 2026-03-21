@@ -1,34 +1,53 @@
+from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 from PIL import Image
-from pix2tex.cli import LatexOCR
-import cv2
-import numpy as np
+import torch
+import io
 
 class MathOCR:
     def __init__(self):
-        """Initializes the Pix2Tex model once."""
-        print("Initializing MathOCR Model...")
-        self.model = LatexOCR()
+        print("Initializing Custom Hugging Face OCR Model...")
+        
+        # We check if you have a GPU available; otherwise, we use CPU
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print(f"Loading model onto: {self.device}")
 
-    def predict(self, image_input):
-        """
-        Takes an image (either a file path or an OpenCV numpy array)
-        and returns the predicted LaTeX string.
-        """
-        # If the input is an OpenCV image (numpy array), convert it to a PIL Image
-        if isinstance(image_input, np.ndarray):
-            # Convert grayscale OpenCV image to PIL Image format
-            if len(image_input.shape) == 2: 
-                image_input = cv2.cvtColor(image_input, cv2.COLOR_GRAY2RGB)
-            else: 
-                image_input = cv2.cvtColor(image_input, cv2.COLOR_BGR2RGB)
-            
-            img = Image.fromarray(image_input)
-            
-        elif isinstance(image_input, str):
-            # If a file path is passed directly
-            img = Image.open(image_input)
-        else:
-            raise TypeError("Input must be a file path or an OpenCV image array.")
+        # For this architecture, we are using Microsoft's TrOCR (Transformer OCR).
+        # We are starting with the base handwritten model. 
+        # (Later, we can swap this string for a math-specific CROHME model!)
+        model_name = "microsoft/trocr-base-handwritten"
 
-        # Run inference
-        return self.model(img)
+        try:
+            # The Processor handles the image resizing and normalization
+            self.processor = TrOCRProcessor.from_pretrained(model_name)
+            # The Model is the actual neural network
+            self.model = VisionEncoderDecoderModel.from_pretrained(model_name).to(self.device)
+            print("Hugging Face Model loaded successfully!")
+        except Exception as e:
+            print(f"CRITICAL ERROR loading model: {e}")
+
+    def predict(self, image_array):
+        """
+        Takes an OpenCV image array, converts it for Hugging Face,
+        runs a forward pass, and returns the predicted string.
+        """
+        try:
+            # 1. Convert OpenCV image (NumPy array) to a PIL Image (which Hugging Face expects)
+            # Assuming the image coming from preprocessing is grayscale, we convert to RGB
+            pil_image = Image.fromarray(image_array).convert("RGB")
+
+            # 2. Preprocess the image into PyTorch tensors
+            pixel_values = self.processor(images=pil_image, return_tensors="pt").pixel_values
+            pixel_values = pixel_values.to(self.device)
+
+            # 3. Run Inference (Generate the text)
+            generated_ids = self.model.generate(pixel_values)
+
+            # 4. Decode the tensor output back into a human-readable string
+            generated_text = self.processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+            
+            print(f"AI Prediction: {generated_text}")
+            return generated_text
+
+        except Exception as e:
+            print(f"Error during model inference: {e}")
+            return "ERROR_INFERENCE"
