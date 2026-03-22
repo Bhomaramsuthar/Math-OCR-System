@@ -2,12 +2,25 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 import shutil
 import os
-
-# 1. THE AI IMPORTS
 from PIL import Image
-from pix2tex.cli import LatexOCR
-import pix2tex  # <--- Added to locate the package directory
-from munch import Munch
+
+# 1. THE HUGGING FACE SURGICAL BYPASS
+from transformers import AutoImageProcessor
+
+_original_register = AutoImageProcessor.register
+
+@classmethod
+def safe_register(cls, config_class, **kwargs):
+    if 'slow_image_processor_class' in kwargs:
+        kwargs['image_processor_class'] = kwargs.pop('slow_image_processor_class')
+    return _original_register(config_class, **kwargs)
+
+AutoImageProcessor.register = safe_register
+
+# 2. THE MODERN MATH MODEL IMPORTS
+from texify.inference import batch_inference
+from texify.model.model import load_model
+from texify.model.processor import load_processor
 
 # Import our custom Database and Parser pipeline
 from src.ocr_engine.preprocessing import preprocess_image
@@ -24,77 +37,65 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-print("Booting up server and loading AI models into memory...")
+print("Booting up server and loading SOTA AI model...")
 
-# 2. THE BLUEPRINT FIX
-# Dynamically locate the default architecture blueprint inside your virtual environment
-pix2tex_dir = os.path.dirname(pix2tex.__file__)
-default_config_path = os.path.join(pix2tex_dir, 'model', 'settings', 'config.yaml')
-
-# THE NEW FIX: The Absolute Path to the Brain
-# This mathematically calculates the root folder (math-ocr-system) no matter where the server runs
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-
-# VERY IMPORTANT: Ensure your extracted file is actually named EXACTLY "weights.pth". 
-# If it is named something like "bhomaram_custom_model.pth", change the string below to match!
-custom_brain_path = os.path.join(ROOT_DIR, 'bhomaram_custom_math_model_e03_step250.pth') 
-
-args = Munch({
-    'checkpoint': custom_brain_path, # <--- We pass the absolute path here
-    'config': default_config_path,   
-    'no_cuda': False,            
-    'no_resize': False
-})
-
-ocr_system = LatexOCR()
+# 3. LOAD THE TEXIFY MODEL
+model = load_model()
+processor = load_processor()
 
 parser = EquationParser()
-print("Models loaded successfully!")
+print("SOTA Vision Model loaded successfully!")
 
-# ... (Keep all your @app.get and @app.post routes exactly the same below here) ...
 @app.get("/")
 def read_root():
     return {"status": "online", "message": "Math OCR API is running!"}
 
 @app.post("/upload-equation")
 async def process_equation(file: UploadFile = File(...)):
-    """
-    Receives an image, runs the ML pipeline, saves to DB, and returns JSON.
-    """
     try:
         # 1. Save uploaded file temporarily
         temp_path = f"data/raw_images/{file.filename}"
+        os.makedirs(os.path.dirname(temp_path), exist_ok=True)
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        # 2. Run Pipeline
-        # (Optional: You can still run your custom preprocess_image here if it overwrites the temp_path)
+        # 2. Run the gentle PIL preprocessor
         cleaned_image_path = preprocess_image(temp_path) 
         
-        # 3. THE PREDICTION UPDATE
-        # Pix2Tex requires the image to be opened as a PIL RGB object before predicting
-        img = Image.open(temp_path).convert('RGB')
-        latex_str = ocr_system(img)
+        # 3. THE PREDICTION
+        img = Image.open(cleaned_image_path).convert('RGB')
+        results = batch_inference([img], model, processor)
         
-        # Pass the newly generated LaTeX string into your existing parser
-        parsed_data = parser.parse_to_dict(latex_str)
+        # Grab the raw LaTeX from the array
+        raw_latex = results[0]
+        print(f"\nRaw AI Prediction: {raw_latex}")
 
-        # 4. Save to DB using a strict copy
+        # 3.5 THE STRING STRIPPER
+        # Remove whitespace and newlines
+        clean_latex = raw_latex.strip()
+        
+        # First, remove stray trailing periods if the VLM treated it like a sentence
+        if clean_latex.endswith('.'):
+            clean_latex = clean_latex[:-1].strip()
+
+        # Next, remove $$ or $ wrappers that crash SymPy
+        if clean_latex.startswith('$$') and clean_latex.endswith('$$'):
+            clean_latex = clean_latex[2:-2].strip()
+        elif clean_latex.startswith('$') and clean_latex.endswith('$'):
+            clean_latex = clean_latex[1:-1].strip()
+            
+        print(f"Cleaned LaTeX for Parser: {clean_latex}\n")
+        
+        # 4. Parse and Save
+        parsed_data = parser.parse_to_dict(clean_latex)
         db_data = parsed_data.copy()
         raw_db_id = save_equation(db_data)
 
-        # 5. THE NUCLEAR FIX: 
-        # Force the database ID into a standard Python string
-        safe_db_id = str(raw_db_id) 
-
-        # Forcefully rebuild the dictionary without the _id key (just in case)
-        clean_data = {k: v for k, v in parsed_data.items() if k != "_id"}
-
-        # 6. Return Success
+        # 5. Return Clean JSON
         return {
             "status": "success",
-            "database_id": safe_db_id,
-            "data": clean_data
+            "database_id": str(raw_db_id),
+            "data": {k: v for k, v in parsed_data.items() if k != "_id"}
         }
 
     except Exception as e:

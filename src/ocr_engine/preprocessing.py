@@ -1,71 +1,53 @@
 import cv2
 import numpy as np
+import os
 
-def preprocess_image(image_path, output_path=None):
+def preprocess_image(image_path: str) -> str:
     """
-    Advanced preprocessing pipeline that dynamically adjusts stroke thickness
-    based on the input image (handles both Paint doodles and clean textbooks).
+    Takes a raw smartphone photo, resizes it, and applies adaptive thresholding
+    to create a perfect black-and-white scan for the AI.
     """
-    # 1. Read Image
-    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    print(f"Preprocessing raw image: {image_path}")
+    
+    # 1. Read the image
+    img = cv2.imread(image_path)
     if img is None:
         raise ValueError(f"Could not read image at {image_path}")
 
-    # 2. Invert (Ink becomes white, background black for CV math)
-    inverted = cv2.bitwise_not(img)
+    # 2. THE RESIZE FIX
+    # The AI hates massive phone photos. We shrink it to a max height of 384px
+    # while maintaining the exact aspect ratio.
+    max_height = 384
+    h, w = img.shape[:2]
+    if h > max_height:
+        scaling_factor = max_height / float(h)
+        new_size = (int(w * scaling_factor), max_height)
+        img = cv2.resize(img, new_size, interpolation=cv2.INTER_AREA)
 
-    # 3. Clean up noise and Threshold
-    _, thresh = cv2.threshold(inverted, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    # 3. Convert to Grayscale
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # 4. Smart Cropping (tightest bounding box around the ink)
-    coords = cv2.findNonZero(thresh)
-    if coords is not None:
-        x, y, w, h = cv2.boundingRect(coords)
-        cropped = thresh[y:y+h, x:x+w]
-    else:
-        cropped = thresh
+    # 4. THE SHADOW FIX (Adaptive Thresholding)
+    # This ignores overall lighting and looks at local areas to separate ink from paper.
+    # It forces the background to pure white (255) and the ink to pure black (0).
+    binary_img = cv2.adaptiveThreshold(
+        gray, 255, 
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+        cv2.THRESH_BINARY, 
+        blockSize=21, 
+        C=11
+    )
 
-    # 5. Scale Normalization (Force height to 96px, preserve aspect ratio)
-    target_height = 96
-    aspect_ratio = cropped.shape[1] / cropped.shape[0]
-    target_width = int(target_height * aspect_ratio)
+    # 5. Denoise (Wipes away tiny specks of dust or rogue pixels)
+    clean_img = cv2.fastNlMeansDenoising(binary_img, h=15)
 
-    # Use INTER_AREA for shrinking, INTER_CUBIC for enlarging
-    if cropped.shape[0] > target_height:
-        resized = cv2.resize(cropped, (target_width, target_height), interpolation=cv2.INTER_AREA)
-    else:
-        resized = cv2.resize(cropped, (target_width, target_height), interpolation=cv2.INTER_CUBIC)
-
-    # 6. THE SMART VISION: Calculate average ink thickness
-    dist = cv2.distanceTransform(resized, cv2.DIST_L2, 3)
-    max_thickness = np.max(dist)
+    # 6. Save the cleaned image to pass to the AI
+    clean_path = image_path.replace("raw_images", "cleaned_images")
     
-    # Dynamically adjust the stroke width
-    processed_ink = resized.copy()
+    # Ensure the cleaned_images directory exists
+    os.makedirs(os.path.dirname(clean_path), exist_ok=True)
     
-    if max_thickness < 2.5:
-        # Ink is too thin (e.g., MS Paint). Thicken it.
-        kernel = np.ones((2, 2), np.uint8)
-        processed_ink = cv2.dilate(resized, kernel, iterations=1)
-        print(f"Smart Vision: Detected thin lines (Thickness: {max_thickness:.2f}). Thickening applied.")
-        
-    elif max_thickness > 6.0:
-        # Ink is too thick (e.g., heavy marker). Thin it.
-        kernel = np.ones((2, 2), np.uint8)
-        processed_ink = cv2.erode(resized, kernel, iterations=1)
-        print(f"Smart Vision: Detected thick lines (Thickness: {max_thickness:.2f}). Thinning applied.")
-        
-    else:
-        print(f"Smart Vision: Detected normal lines (Thickness: {max_thickness:.2f}). No adjustment needed.")
-
-    # 7. Add Standardized Padding (Pix2Tex needs breathing room)
-    pad = 32
-    padded = cv2.copyMakeBorder(processed_ink, pad, pad, pad, pad, cv2.BORDER_CONSTANT, value=0)
-
-    # 8. Re-invert to black text on white background
-    final_img = cv2.bitwise_not(padded)
-
-    if output_path:
-        cv2.imwrite(output_path, final_img)
-
-    return final_img
+    cv2.imwrite(clean_path, clean_img)
+    print(f"Cleaned image saved to: {clean_path}")
+    
+    return clean_path
