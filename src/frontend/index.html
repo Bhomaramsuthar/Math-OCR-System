@@ -3,34 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math OCR System</title>
+    <title>AI Math Solver</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-    <link rel="stylesheet" href="style.css">
-</head> 
-<body>
-    <div class="container">
-        <div class="card">
-            <h1>Math OCR Engine</h1>
-            <p>Upload an image of a mathematical equation to extract and render it.</p>
-            
-            <div class="upload-section">
-                <input type="file" id="imageInput" accept="image/*">
-                <button id="uploadBtn">Extract Equation</button>
-            </div>
-            
-            <div id="resultBox" class="hidden">
-                <h3>Rendered Output:</h3>
-                <div id="mathDisplay" class="math-render"></div>
-                
-                <div class="data-section">
-                    <p><strong>Raw LaTeX:</strong> <br><code id="rawLatex"></code></p>
-                    <p><small>Database ID: <span id="dbId"></span></small></p>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800 font-sans">
+    <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <div class="md:col-span-2 space-y-6">
+            <h1 class="text-4xl font-extrabold text-blue-600">AI Math Solver</h1>
+            <p class="text-gray-600">Draw an equation or upload a photo to solve it instantly.</p>
+
+            <div class="bg-white p-6 rounded-lg shadow border">
+                <div class="flex space-x-4 mb-4 border-b pb-2">
+                    <button id="tabDraw" class="font-bold text-blue-600 border-b-2 border-blue-600 pb-1">Draw Equation</button>
+                    <button id="tabUpload" class="font-bold text-gray-500 pb-1">Upload Photo</button>
                 </div>
+
+                <div id="drawSection" class="block">
+                    <canvas id="drawingCanvas" width="600" height="200" class="border-2 border-dashed border-gray-300 rounded cursor-crosshair w-full bg-white touch-none"></canvas>
+                    <div class="flex justify-end space-x-2 mt-3">
+                        <button id="clearBtn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 font-medium">Clear Canvas</button>
+                    </div>
+                </div>
+
+                <div id="uploadSection" class="hidden">
+                    <input type="file" id="imageInput" accept="image/*" class="w-full p-4 border-2 border-dashed border-gray-300 rounded bg-gray-50" />
+                </div>
+
+                <button id="processBtn" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded transition-colors shadow-md">
+                    Process Equation
+                </button>
+            </div>
+
+            <div id="resultBox" class="hidden p-6 bg-white rounded-lg shadow border">
+                <div class="mb-4">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Review & Edit Math:</label>
+                    <div class="border-2 border-blue-200 rounded p-4 min-h-[60px] bg-blue-50 cursor-text text-xl">
+                        <span id="visualMathEditor" class="w-full"></span>
+                    </div>
+                    <p id="mathErrorMsg" class="hidden text-red-600 text-sm mt-2 font-medium flex items-center">
+                        <svg class="w-4 h-4 mr-1 inline" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                        <span id="mathErrorText"></span>
+                    </p>
+                </div>
+
+                <button id="solveBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded w-full transition-colors shadow-md">
+                    Solve Mathematically
+                </button>
+
+                <div id="solutionContainer" class="hidden mt-6 p-6 bg-green-50 border-2 border-green-200 rounded-lg">
+                    <h4 class="font-bold text-green-800 mb-4 text-lg">Solution:</h4>
+                    <div id="solutionDisplay" class="text-2xl overflow-x-auto text-gray-900"></div>
+                </div>
+                
+                <span id="dbId" class="hidden"></span>
             </div>
         </div>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+        <div class="bg-white p-6 rounded-lg shadow border h-fit">
+            <h3 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2">Session History</h3>
+            <ul id="historyList" class="space-y-4">
+                <li class="text-sm text-gray-500">Loading history...</li>
+            </ul>
+        </div>
+    </div>
     <script src="app.js"></script>
 </body>
-</html>
+</html> 

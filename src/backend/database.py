@@ -2,6 +2,8 @@ import os
 from pymongo import MongoClient
 from datetime import datetime, timezone
 from dotenv import load_dotenv
+from bson.objectid import ObjectId
+
 
 # Load the environment variable from the .env file
 load_dotenv()
@@ -27,3 +29,34 @@ def save_equation(parsed_data):
     except Exception as e:
         print(f"Database Error: {e}")
         return None
+    
+def get_equations_by_session(session_id:str):
+    """Fetches all equations belonging to a specific session, newest first."""
+    try:
+        # Assuming your MongoDB equations_collection variable is named `collection`
+        # We sort by _id -1 to get the most recently added items first
+        cursor = equations_collection.find({"session_id": session_id}).sort("_id", -1)
+        history = []
+        for doc in cursor:
+            doc["_id"] = str(doc["_id"])
+            history.append(doc)
+
+        return history
+    except Exception as e:
+        print(f"Database FetchError: {e}")
+        return []            
+
+from bson.objectid import ObjectId # Ensure this is imported at the top
+
+# Add this to the bottom of the file
+def update_equation_solution(db_id: str, solution_latex: str):
+    """Updates an existing database record with its calculated solution."""
+    try:
+        equations_collection.update_one(
+            {"_id": ObjectId(db_id)},
+            {"$set": {"solution_latex": solution_latex}}
+        )
+        return True
+    except Exception as e:
+        print(f"Database Update Error: {e}")
+        return False
