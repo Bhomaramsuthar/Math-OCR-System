@@ -45,47 +45,86 @@ const visualMathField = MQ.MathField(document.getElementById('visualMathEditor')
 });
 
 // ==========================================
-// 3. CANVAS DRAWING LOGIC (White Background is strictly required for OCR)
+// 3. CANVAS DRAWING LOGIC (Smooth Calligraphy & Accurate Pointer)
 // ==========================================
 function initCanvas() {
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.lineWidth = 4;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = 'black';
 }
 initCanvas();
+
+let lastPos = null;
+
+// The vital math to fix the misaligned pointer
+function getPointerPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    // Handle both mouse and touch seamlessly
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+
+    // Map the CSS screen pixels to the internal Canvas pixels perfectly
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
+    };
+}
 
 canvas.addEventListener('mousedown', startPosition);
 canvas.addEventListener('mouseup', endPosition);
 canvas.addEventListener('mousemove', draw);
-// Touch support
-canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startPosition(e.touches[0]); });
+// Touch support for mobile/tablets
+canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startPosition(e); });
 canvas.addEventListener('touchend', (e) => { e.preventDefault(); endPosition(); });
-canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); });
+canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); });
 
 function startPosition(e) {
     isDrawing = true;
-    draw(e);
+    lastPos = getPointerPos(e);
+    
+    // Setup Calligraphy Ink Settings
+    ctx.lineWidth = 5;          // Thicker, bolder ink
+    ctx.lineCap = 'round';      // Rounded ends
+    ctx.lineJoin = 'round';     // Smooth corners
+    ctx.strokeStyle = '#000000';// Pure black
+    
+    // Optional: Add a microscopic shadow to mimic ink bleeding into the paper
+    ctx.shadowBlur = 1;
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    
+    ctx.beginPath();
+    ctx.moveTo(lastPos.x, lastPos.y);
 }
+
 function endPosition() {
     isDrawing = false;
-    ctx.beginPath();
+    lastPos = null;
 }
+
 function draw(e) {
     if (!isDrawing) return;
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX || e.pageX) - rect.left;
-    const y = (e.clientY || e.pageY) - rect.top;
-    ctx.lineTo(x, y);
+    
+    const currentPos = getPointerPos(e);
+    
+    // Calculate the midpoint between the last recorded position and current position
+    const midPoint = {
+        x: lastPos.x + (currentPos.x - lastPos.x) / 2,
+        y: lastPos.y + (currentPos.y - lastPos.y) / 2
+    };
+    
+    // Draw a smooth Bezier curve through the midpoint
+    ctx.quadraticCurveTo(lastPos.x, lastPos.y, midPoint.x, midPoint.y);
     ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x, y);
+    
+    // Update the last position to the current one
+    lastPos = currentPos;
 }
 
 clearBtn.addEventListener('click', initCanvas);
 
-// Tab Switching
+// Tab Switching (Keep your existing tab switching logic here!)
 tabDraw.addEventListener('click', () => {
     drawSection.classList.remove('hidden');
     uploadSection.classList.add('hidden');
@@ -103,6 +142,7 @@ tabUpload.addEventListener('click', () => {
     tabDraw.classList.add('text-gray-500');
     tabDraw.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
 });
+
 
 // ==========================================
 // 4. API COMMUNICATION (Process & Solve)
@@ -152,6 +192,22 @@ processBtn.addEventListener('click', async () => {
 solveBtn.addEventListener('click', async () => {
     const currentLatex = visualMathField.latex(); 
     const currentDbId = dbId.innerText;
+
+    // ==========================================
+    // NEW: FORM VALIDATION (The "Required" Check)
+    // ==========================================
+    // 1. Check if the box is completely empty
+    if (!currentLatex || currentLatex.trim() === '') {
+        alert("The equation box is empty! Please draw or upload an equation first.");
+        return; // Stops the function from running
+    }
+
+    // 2. Check for empty LaTeX blocks (like an empty fraction \frac{}{} or exponent x^{})
+    if (currentLatex.includes('{}')) {
+        alert("Your equation has missing parts. Please fill in all empty blanks before solving.");
+        return; // Stops the function from running
+    }
+    // ==========================================
 
     solveBtn.innerText = "Solving...";
     solveBtn.disabled = true;
