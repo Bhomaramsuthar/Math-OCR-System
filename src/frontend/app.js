@@ -44,6 +44,10 @@ const visualMathField = MQ.MathField(document.getElementById('visualMathEditor')
     spaceBehavesLikeTab: true
 });
 
+const mathErrorMsg = document.getElementById('mathErrorMsg');
+const mathErrorText = document.getElementById('mathErrorText');
+
+
 // ==========================================
 // 3. CANVAS DRAWING LOGIC (Smooth Calligraphy & Accurate Pointer)
 // ==========================================
@@ -193,22 +197,26 @@ solveBtn.addEventListener('click', async () => {
     const currentLatex = visualMathField.latex(); 
     const currentDbId = dbId.innerText;
 
-    // ==========================================
-    // NEW: FORM VALIDATION (The "Required" Check)
-    // ==========================================
-    // 1. Check if the box is completely empty
+    // 1. Reset the error message UI every time they click solve
+    mathErrorMsg.classList.add('hidden');
+    mathErrorText.innerText = "";
+    solutionContainer.classList.add('hidden');
+
+    // 2. FORM VALIDATION
     if (!currentLatex || currentLatex.trim() === '') {
-        alert("The equation box is empty! Please draw or upload an equation first.");
-        return; // Stops the function from running
+        mathErrorText.innerText = "The equation is empty. Please process an image or draw one first.";
+        mathErrorMsg.classList.remove('hidden');
+        return; 
     }
 
-    // 2. Check for empty LaTeX blocks (like an empty fraction \frac{}{} or exponent x^{})
     if (currentLatex.includes('{}')) {
-        alert("Your equation has missing parts. Please fill in all empty blanks before solving.");
-        return; // Stops the function from running
+        mathErrorText.innerText = "Your equation has empty blanks. Please fill in all required values.";
+        mathErrorMsg.classList.remove('hidden');
+        return; 
     }
-    // ==========================================
 
+    // 3. Process the backend request
+    const originalText = solveBtn.innerText;
     solveBtn.innerText = "Solving...";
     solveBtn.disabled = true;
 
@@ -225,18 +233,22 @@ solveBtn.addEventListener('click', async () => {
             katex.render(data.solution_latex, solutionDisplay, { throwOnError: false, displayMode: true });
             loadHistory(); 
         } else {
-            alert("SymPy failed to solve: " + data.message);
+            // Display backend parsing errors gracefully in the UI instead of an alert
+            mathErrorText.innerText = "SymPy could not understand this format. Ensure the math is valid and all the blanks are filled.";
+            mathErrorMsg.classList.remove('hidden');
         }
     } catch (error) {
-        alert("Server connection failed.");
+        mathErrorText.innerText = "Server connection failed. Is FastAPI running?";
+        mathErrorMsg.classList.remove('hidden');
     } finally {
-        solveBtn.innerText = "Solve Mathematically";
+        solveBtn.innerText = originalText;
         solveBtn.disabled = false;
     }
 });
 
+
 // ==========================================
-// 5. LOAD SESSION HISTORY
+// 5. LOAD SESSION HISTORY (Using MathQuill StaticMath)
 // ==========================================
 async function loadHistory() {
     try {
@@ -245,32 +257,50 @@ async function loadHistory() {
 
         if (data.status === 'success') {
             historyList.innerHTML = ''; 
+            
             if (data.history.length === 0) {
-                historyList.innerHTML = '<li class="text-sm text-gray-500">No equations yet.</li>';
+                historyList.innerHTML = '<li class="text-sm text-gray-500 italic p-4 text-center bg-gray-50 rounded border border-dashed">No equations yet. Draw or upload one!</li>';
                 return;
             }
 
             data.history.forEach(item => {
                 const li = document.createElement('li');
-                li.className = "p-3 bg-gray-50 rounded shadow-sm border border-gray-200 overflow-x-auto";
+                li.className = "p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow";
                 
-                const eqStr = item.latex || "Unknown";
-                const solStr = item.solution_latex ? `<br><span class="text-green-600 font-bold mt-2 block">Answer: $${item.solution_latex}$</span>` : "";
+                const eqStr = item.latex || item.raw_latex || "Unknown";
                 
-                li.innerHTML = `<span class="text-xs text-gray-400 block mb-1">ID: ${item._id.slice(-4)}</span>
-                                <div class="math-render">$${eqStr}$</div>${solStr}`;
+                // Build the HTML with specific classes for MathQuill to target
+                let htmlContent = `
+                    <div class="flex justify-between items-center mb-2 border-b pb-1">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">ID: ${item._id.slice(-4)}</span>
+                    </div>
+                    <div class="text-lg overflow-x-auto pb-2 text-gray-800 mq-static-math">${eqStr}</div>
+                `;
+                
+                // If it has a solution, add it in green below
+                if (item.solution_latex) {
+                    htmlContent += `
+                        <div class="mt-2 pt-2 border-t border-gray-100 bg-green-50/50 -mx-4 px-4 pb-2 rounded-b-lg">
+                            <span class="text-xs font-bold text-green-600 uppercase tracking-wider block mb-1">Answer:</span>
+                            <div class="text-xl overflow-x-auto text-green-800 mq-static-math">${item.solution_latex}</div>
+                        </div>
+                    `;
+                }
+                
+                li.innerHTML = htmlContent;
                 historyList.appendChild(li);
             });
 
-            // Render math in the history sidebar
-            document.querySelectorAll('.math-render').forEach(el => {
-                try {
-                    katex.render(el.innerText.replace(/\$/g, ''), el, { throwOnError: false, displayMode: true });
-                } catch(e) {}
+            // Tell MathQuill to loop through those new divs and render them beautifully
+            document.querySelectorAll('.mq-static-math').forEach(el => {
+                MQ.StaticMath(el);
             });
         }
     } catch (error) {
-        console.error("Failed to load history.");
+        console.error("Failed to load history.", error);
+        historyList.innerHTML = '<li class="text-sm text-red-500 p-2">Failed to load history from server.</li>';
     }
 }
+
+// Call it once when the page loads
 loadHistory();
