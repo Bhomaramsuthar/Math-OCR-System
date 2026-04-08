@@ -1,120 +1,423 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="theme-dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Math Solver</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    
+    <meta name="description" content="The Editorial — A premium Mathematical Equation OCR and Solving System. Draw, upload, or type equations and get instant solutions.">
+    <title>The Editorial — Math OCR Solver</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- jQuery (MathQuill dependency) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+
+    <!-- MathQuill for visual math editing -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.js"></script>
+
+    <!-- KaTeX for math rendering -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-    <style>
-        /* Prevent KaTeX / MathQuill output from overflowing containers */
-        .katex-display, .katex {
-            overflow-x: auto;
-            overflow-y: hidden;
-            max-width: 100%;
-        }
-        .katex-display > .katex {
-            white-space: normal;
-        }
-        .mq-static-math, .mq-root-block {
-            overflow-x: auto;
-            max-width: 100%;
-        }
-        #solutionDisplay {
-            overflow-x: auto;
-            overflow-y: hidden;
-            max-width: 100%;
-            padding-bottom: 8px;
-        }
-        #resultBox {
-            overflow: hidden;
-            max-width: 100%;
-        }
-    </style>
+
+    <!-- App Styles -->
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-100 min-h-screen text-gray-800 font-sans">
-    <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-8">
-        
-        <div class="md:col-span-2 space-y-6">
-            <h1 class="text-4xl font-extrabold text-blue-600">AI Math Solver</h1>
-            <p class="text-gray-600">Draw an equation or upload a photo to solve it instantly.</p>
+<body>
 
-            <div class="bg-white p-6 rounded-lg shadow border">
-                <div class="flex space-x-4 mb-4 border-b pb-2">
-                    <button id="tabDraw" class="font-bold text-blue-600 border-b-2 border-blue-600 pb-1">Draw Equation</button>
-                    <button id="tabUpload" class="font-bold text-gray-500 pb-1">Upload Photo</button>
+    <!-- ═══════════════════════════════════════════════════════════════
+         SIDEBAR
+         ═══════════════════════════════════════════════════════════════ -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">The Editorial</div>
+        <nav class="sidebar-nav">
+            <button class="sidebar-link active" data-page="workspace" id="sidebar-workspace">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                </svg>
+                Workspace
+            </button>
+            <button class="sidebar-link" data-page="history" id="sidebar-history">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+                History
+            </button>
+            <button class="sidebar-link" data-page="settings" id="sidebar-settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+                Settings
+            </button>
+        </nav>
+    </aside>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         TOP NAVIGATION
+         ═══════════════════════════════════════════════════════════════ -->
+    <header class="topnav" id="topnav">
+        <nav class="topnav-links">
+            <button class="topnav-link active" data-page="workspace" id="topnav-workspace">Workspace</button>
+            <button class="topnav-link" data-page="history" id="topnav-history">History</button>
+            <button class="topnav-link" data-page="settings" id="topnav-settings">Settings</button>
+        </nav>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         MAIN CONTENT AREA
+         ═══════════════════════════════════════════════════════════════ -->
+    <main class="main-content">
+        <div class="content-wrapper">
+
+            <!-- ═══════════════════════════════════════════════════════
+                 PAGE 1: WORKSPACE
+                 ═══════════════════════════════════════════════════════ -->
+            <section class="page-section active" id="page-workspace">
+                <!-- Header -->
+                <div class="page-header">
+                    <h1 class="page-title">The Workspace.</h1>
+                    <p class="page-subtitle">Input your mathematical queries through vision, handwriting, or precise manual entry. Our editorial engine transforms symbols into truth.</p>
                 </div>
 
-                <div id="drawSection" class="block">
-                    <canvas id="drawingCanvas" width="600" height="200" class="border-2 border-dashed border-gray-300 rounded cursor-crosshair w-full bg-white touch-none"></canvas>
-                    <div class="flex flex-wrap items-center justify-between gap-3 mt-3">
-                        <!-- Brush size slider -->
-                        <div class="flex items-center gap-2">
-                            <label for="brushSize" class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Brush</label>
-                            <input id="brushSize" type="range" min="1" max="20" value="5" class="w-24 accent-blue-600" />
-                            <span id="brushSizeLabel" class="text-xs text-gray-500 w-6 text-center">5</span>
+                <!-- Draw / Upload Toggle -->
+                <div class="workspace-toggle">
+                    <div class="segmented-control" id="modeToggle">
+                        <button class="segment-btn active" data-mode="draw" id="modeDraw">Draw</button>
+                        <button class="segment-btn" data-mode="upload" id="modeUpload">Upload</button>
+                    </div>
+                </div>
+
+                <!-- STATE A: Handwriting Canvas -->
+                <div class="card canvas-card" id="drawSection">
+                    <div class="canvas-header">
+                        <div class="canvas-header-left">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                            </svg>
+                            <div>
+                                <div class="card-title" style="margin-bottom:0">Handwriting Canvas</div>
+                            </div>
                         </div>
-                        <!-- Eraser toggle -->
-                        <div class="flex items-center gap-2">
-                            <button id="eraserBtn" class="px-3 py-1.5 bg-yellow-100 text-yellow-800 border border-yellow-300 rounded hover:bg-yellow-200 font-medium text-sm transition-colors" title="Toggle eraser">
-                                ✏️ Draw
+                        <div class="canvas-toolbar">
+                            <!-- Pen Tool -->
+                            <button class="btn-icon active" id="toolPen" title="Pen">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                                </svg>
                             </button>
-                            <button id="clearBtn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 font-medium text-sm">Clear Canvas</button>
+                            <!-- Eraser Tool -->
+                            <button class="btn-icon" id="toolEraser" title="Eraser">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 20H7L3 16c-.8-.8-.8-2 0-2.8L14.6 1.6c.8-.8 2-.8 2.8 0L21.4 5.6c.8.8.8 2 0 2.8L10 20"/>
+                                </svg>
+                            </button>
+                            <div class="toolbar-divider"></div>
+                            <!-- Dot sizes -->
+                            <button class="dot-size small" data-size="2" title="Small"></button>
+                            <button class="dot-size medium active" data-size="5" title="Medium"></button>
+                            <button class="dot-size large" data-size="10" title="Large"></button>
+                            <!-- Thickness Slider -->
+                            <input type="range" class="thickness-slider" id="thicknessSlider" min="1" max="20" value="5" title="Brush thickness">
+                            <div class="toolbar-divider"></div>
+                            <!-- Undo -->
+                            <button class="btn-icon" id="toolUndo" title="Undo">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                                </svg>
+                            </button>
+                            <!-- Redo -->
+                            <button class="btn-icon" id="toolRedo" title="Redo">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                                </svg>
+                            </button>
+                            <!-- Clear -->
+                            <button class="btn-icon" id="toolClear" title="Clear canvas">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas id="drawingCanvas" width="1200" height="400"></canvas>
+                    </div>
+                </div>
+
+                <!-- STATE B: Upload / Equation Vision -->
+                <div class="card upload-card hidden" id="uploadSection">
+                    <div class="dropzone" id="dropzone">
+                        <div class="dropzone-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+                            </svg>
+                        </div>
+                        <div class="dropzone-title">Equation Vision</div>
+                        <p class="dropzone-text">Drop your PNG, JPG, or PDF here for instant OCR parsing and conversion to LaTeX.</p>
+                        <button class="btn btn-secondary" id="uploadDocBtn" style="width:100%">Upload Document</button>
+                        <input type="file" id="fileInput" accept="image/png,image/jpeg,image/jpg,application/pdf" style="display:none">
+                        <div class="dropzone-formats">
+                            <span class="badge-format">PDF</span>
+                            <span class="badge-format">JPEG</span>
+                            <span class="badge-format">PNG</span>
+                        </div>
+                    </div>
+                    <div class="upload-preview" id="uploadPreview">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        <span class="upload-preview-name" id="uploadFileName">No file selected</span>
+                        <button class="upload-preview-remove" id="removeFile" title="Remove file">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Parse Input Button -->
+                <div class="parse-action">
+                    <button class="btn btn-primary" id="parseInputBtn">
+                        Parse Input
+                    </button>
+                </div>
+
+                <!-- Equation Editor -->
+                <div class="card equation-editor-card">
+                    <div class="card-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>
+                        </svg>
+                        Equation Editor
+                    </div>
+                    <div class="editor-layout mt-md">
+                        <div class="editor-textarea-wrapper">
+                            <div class="mathquill-editor-container">
+                                <span id="mathEditor" class="mathquill-editor"></span>
+                                <span class="badge-latex">LATEX</span>
+                            </div>
+                            <p id="mathErrorMsg" class="mq-error-hint" style="display:none">
+                                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                                <span id="mathErrorText"></span>
+                            </p>
+                        </div>
+                        <div class="quick-symbols">
+                            <div class="quick-symbols-title">Quick Symbols</div>
+                            <div class="symbols-grid">
+                                <button class="symbol-btn" data-latex="\\pi" title="pi">π</button>
+                                <button class="symbol-btn" data-latex="\\sum" title="sigma">Σ</button>
+                                <button class="symbol-btn" data-latex="\\sqrt{}" title="square root">√</button>
+                                <button class="symbol-btn" data-latex="\\infty" title="infinity">∞</button>
+                                <button class="symbol-btn" data-latex="\\theta" title="theta">θ</button>
+                                <button class="symbol-btn" data-latex="\\log" title="log">log</button>
+                                <button class="symbol-btn" data-latex="\\sin" title="sin">sin</button>
+                                <button class="symbol-btn" data-latex="\\cos" title="cos">cos</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div class="error-msg" id="errorMsg">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
+                        <span id="errorText">An error occurred.</span>
+                    </div>
+
+                    <!-- Solve Button -->
+                    <button class="btn btn-primary mt-lg" id="solveBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                            <rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="18"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/>
+                        </svg>
+                        Solve Equation
+                    </button>
+                </div>
+
+                <!-- Solution Result Panel -->
+                <div class="solution-panel" id="solutionPanel">
+                    <div class="solution-label">Solution</div>
+                    <div class="solution-display" id="solutionDisplay"></div>
+                </div>
+
+                <!-- Hidden DB ID tracker -->
+                <span id="dbId" style="display:none"></span>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════
+                 PAGE 2: HISTORY
+                 ═══════════════════════════════════════════════════════ -->
+            <section class="page-section" id="page-history">
+                <!-- Header -->
+                <div class="history-header">
+                    <div class="page-header" style="margin-bottom:0">
+                        <h1 class="page-title">Equation Archive</h1>
+                        <p class="page-subtitle">Browse, filter, and manage your mathematical journey.</p>
+                    </div>
+                    <div class="history-header-actions">
+                        <button class="btn btn-secondary" id="exportBtn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            Export
+                        </button>
+                        <button class="btn btn-danger" id="batchDeleteBtn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                            Batch Delete
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search & Filter Bar -->
+                <div class="filter-bar">
+                    <div class="search-wrapper">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <input type="text" class="input-field" id="searchInput" placeholder="Search equations, results, or variables...">
+                    </div>
+                    <select class="select-field" id="filterType">
+                        <option value="all">All Types</option>
+                        <option value="handwritten">Handwritten</option>
+                        <option value="image">Image Scan</option>
+                        <option value="manual">Manual Input</option>
+                    </select>
+                    <select class="select-field" id="filterDate">
+                        <option value="30">Last 30 Days</option>
+                        <option value="7">Last 7 Days</option>
+                        <option value="1">Today</option>
+                        <option value="all">All Time</option>
+                    </select>
+                    <select class="select-field" id="filterStatus">
+                        <option value="all">All Status</option>
+                        <option value="solved">Status: Solved</option>
+                        <option value="failed">Status: Failed</option>
+                    </select>
+                </div>
+
+                <!-- History Grid -->
+                <div class="history-grid" id="historyGrid">
+                    <!-- Cards are rendered dynamically by app.js -->
+                </div>
+
+                <!-- Footer -->
+                <div class="history-footer" id="historyFooter">
+                    <p class="history-count" id="historyCount">Loading equations...</p>
+                    <button class="btn btn-secondary" id="loadMoreBtn" style="display:none">Load More History</button>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════
+                 PAGE 3: SETTINGS
+                 ═══════════════════════════════════════════════════════ -->
+            <section class="page-section" id="page-settings">
+                <!-- Header -->
+                <div class="page-header">
+                    <h1 class="page-title">Settings</h1>
+                    <p class="page-subtitle">Refine your architectural equation and workspace preferences.</p>
+                </div>
+
+                <!-- Section: Appearance -->
+                <div class="settings-section">
+                    <div class="section-label">Appearance</div>
+                    <div class="settings-grid">
+                        <!-- Visual Theme -->
+                        <div class="card">
+                            <div class="card-title">Visual Theme</div>
+                            <div class="card-subtitle">Select the interface color mode.</div>
+                            <div class="theme-toggle">
+                                <div class="segmented-control" id="themeToggle">
+                                    <button class="segment-btn theme-segment" data-theme="light" id="themeLight">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                                        Light
+                                    </button>
+                                    <button class="segment-btn theme-segment active" data-theme="dark" id="themeDark">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                                        Dark
+                                    </button>
+                                    <button class="segment-btn theme-segment" data-theme="system" id="themeSystem">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                                        System
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Math Typography -->
+                        <div class="card">
+                            <div class="card-title">Math Typography</div>
+                            <div class="card-subtitle">Choose the editorial font for equations.</div>
+                            <div class="font-select-wrapper">
+                                <select class="font-select" id="mathFontSelect">
+                                    <option value="default">STIX Two (Default)</option>
+                                    <option value="latin-modern">Latin Modern</option>
+                                    <option value="computer-modern">Computer Modern</option>
+                                    <option value="serif">System Serif</option>
+                                </select>
+                            </div>
+                            <div class="font-preview" id="fontPreview">
+                                f(x) = ∫ₐᵇ φ(t) dt
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div id="uploadSection" class="hidden">
-                    <input type="file" id="imageInput" accept="image/*" class="w-full p-4 border-2 border-dashed border-gray-300 rounded bg-gray-50" />
-                </div>
+                <!-- Section: Accessibility -->
+                <div class="settings-section">
+                    <div class="section-label">Accessibility</div>
+                    <div class="settings-grid">
+                        <div class="card settings-card-wide">
+                            <!-- Interface Scale -->
+                            <div class="settings-row">
+                                <div class="settings-row-info">
+                                    <div class="settings-row-title">Interface Scale</div>
+                                    <div class="settings-row-subtitle">Adjust the font size and overall element density.</div>
+                                </div>
+                                <div class="settings-row-control">
+                                    <div class="scale-slider-wrapper">
+                                        <span class="scale-label-small">A</span>
+                                        <input type="range" class="scale-slider" id="scaleSlider" min="75" max="125" value="100" step="5">
+                                        <span class="scale-label-large">A</span>
+                                    </div>
+                                </div>
+                            </div>
 
-                <button id="processBtn" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded transition-colors shadow-md">
-                    Process Equation
-                </button>
-            </div>
+                            <!-- High Contrast Mode -->
+                            <div class="settings-row">
+                                <div class="settings-row-info">
+                                    <div class="settings-row-title">High Contrast Mode</div>
+                                    <div class="settings-row-subtitle">Increase separation between surfaces and text.</div>
+                                </div>
+                                <div class="settings-row-control">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="highContrastToggle">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
 
-            <div id="resultBox" class="hidden p-6 bg-white rounded-lg shadow border">
-                <div class="mb-4">
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Review & Edit Math:</label>
-                    <div class="border-2 border-blue-200 rounded p-4 min-h-[60px] bg-blue-50 cursor-text text-xl">
-                        <span id="visualMathEditor" class="w-full"></span>
+                            <!-- Screen Reader Support -->
+                            <div class="settings-row">
+                                <div class="settings-row-info">
+                                    <div class="settings-row-title">Screen Reader Support</div>
+                                    <div class="settings-row-subtitle">Optimize equation parsing for spoken output.</div>
+                                </div>
+                                <div class="settings-row-control">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="screenReaderToggle" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <p id="mathErrorMsg" class="hidden text-red-600 text-sm mt-2 font-medium flex items-center">
-                        <svg class="w-4 h-4 mr-1 inline" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
-                        <span id="mathErrorText"></span>
-                    </p>
                 </div>
+            </section>
 
-                <button id="solveBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded w-full transition-colors shadow-md">
-                    Solve Mathematically
-                </button>
-
-                <div id="solutionContainer" class="hidden mt-6 p-6 bg-green-50 border-2 border-green-200 rounded-lg overflow-hidden">
-                    <h4 class="font-bold text-green-800 mb-4 text-lg">Solution:</h4>
-                    <div id="solutionDisplay" class="text-2xl overflow-x-auto overflow-y-hidden max-w-full text-gray-900 pb-2"></div>
-                </div>
-                
-                <span id="dbId" class="hidden"></span>
-            </div>
         </div>
+    </main>
 
-        <div class="bg-white p-6 rounded-lg shadow border h-fit">
-            <div class="flex justify-between items-center mb-4 border-b pb-2">
-                <h3 class="text-xl font-bold text-gray-800">Session History</h3>
-                <button id="deleteSelectedBtn" class="hidden px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 text-sm font-semibold transition-colors">
-                    Delete Selected
-                </button>
-            </div>
-            <ul id="historyList" class="space-y-4">
-                <li class="text-sm text-gray-500">Loading history...</li>
-            </ul>
-        </div>
-    </div>
+    <!-- App Script -->
     <script src="app.js"></script>
 </body>
-</html> 
+</html>
