@@ -11,9 +11,9 @@ class MathOCR:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"Loading model onto: {self.device}")
 
-        # For this architecture, we are using Microsoft's TrOCR (Transformer OCR).
-        # We are starting with the base handwritten model. 
-        # (Later, we can swap this string for a math-specific CROHME model!)
+        # TrOCR outputs plain text, not LaTeX. The HTTP API uses Texify (+ optional
+        # Pix2Tex) in ``main.py`` for math. This class remains useful for
+        # experiments / non-math handwriting.
         model_name = "microsoft/trocr-base-handwritten"
 
         try:
