@@ -2,8 +2,8 @@
 
 import pytest
 
-from src.ocr_engine.latex_normalize import normalize_ocr_latex
-from src.backend.solver import sanitize_latex
+from src.ocr.latex_normalize import normalize_ocr_latex
+from src.app.solver import sanitize_latex
 from sympy.parsing.latex import parse_latex
 
 

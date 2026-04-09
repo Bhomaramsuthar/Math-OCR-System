@@ -395,33 +395,17 @@
     // ════════════════════════════════════════════════════════════════
     // 7. WORKSPACE — QUICK SYMBOLS (MathQuill API)
     // ════════════════════════════════════════════════════════════════
-    const symbolBtns = document.querySelectorAll('.symbol-btn');
-
-    // Map symbols to MathQuill commands
-    const mqCommands = {
-        '\\pi': 'pi',
-        '\\sum': 'sum',
-        '\\sqrt{}': 'sqrt',
-        '\\infty': 'infty',
-        '\\theta': 'theta',
-        '\\log': 'log',
-        '\\sin': 'sin',
-        '\\cos': 'cos',
-    };
-
-    symbolBtns.forEach(btn => {
+    document.querySelectorAll('.symbol-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            const latex = btn.dataset.latex;
-            const cmd = mqCommands[latex];
-
-            if (cmd) {
-                // Use cmd() for LaTeX commands (renders properly in MathQuill)
-                visualMathField.cmd('\\' + cmd);
-            } else {
-                // Fallback: write raw LaTeX
-                visualMathField.write(latex);
-            }
+            // Force focus back to the MathQuill editor
             visualMathField.focus();
+
+            // Inject the symbol based on its attribute
+            if (btn.hasAttribute('data-cmd')) {
+                visualMathField.cmd(btn.getAttribute('data-cmd'));
+            } else if (btn.hasAttribute('data-latex')) {
+                visualMathField.write(btn.getAttribute('data-latex'));
+            }
         });
     });
 
@@ -646,6 +630,12 @@
                     <div class="history-type-label">${type}</div>
                     <div class="history-timestamp">${timeStr}</div>
                 </div>
+                <button class="solo-delete-btn" data-id="${item._id}" aria-label="Delete" title="Delete">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                </button>
                 <input type="checkbox" class="${checkboxClass}" data-id="${item._id}">
             </div>
             <div class="history-input-block mq-static-math">${eqStr}</div>
@@ -672,6 +662,32 @@
     loadMoreBtn.addEventListener('click', () => {
         displayedCount += 6;
         renderHistory();
+    });
+
+    // ── Solo Delete ───────────────────────────────────────────────
+    historyGrid.addEventListener('click', async (e) => {
+        const deleteBtn = e.target.closest('.solo-delete-btn');
+        if (!deleteBtn) return;
+        
+        e.stopPropagation();
+        
+        if (!confirm('Are you sure you want to delete this equation?')) return;
+        
+        const id = deleteBtn.dataset.id;
+        try {
+            const response = await fetch(`${API_URL}/history/${id}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                allHistory = allHistory.filter(item => item._id !== id);
+                renderHistory();
+            } else {
+                showError('Failed to delete equation.');
+            }
+        } catch (err) {
+            showError('Failed to delete equation.');
+        }
     });
 
     // ════════════════════════════════════════════════════════════════

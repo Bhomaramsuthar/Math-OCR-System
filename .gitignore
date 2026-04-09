@@ -12,6 +12,7 @@ __pycache__/
 # System files
 .DS_Store
 Thumbs.db
+
 # Environments
 venv/
 __pycache__/
@@ -24,3 +25,10 @@ __pycache__/
 
 # Environment Variables
 .env
+
+# Data
+data/raw_images/
+data/cleaned_images/
+
+# Test assets
+tests/Images/
