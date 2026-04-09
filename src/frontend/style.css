@@ -1483,3 +1483,29 @@ input, textarea, select { font-family: inherit; }
 ::-webkit-scrollbar-thumb:hover {
     background: var(--text-muted);
 }
+
+/* ── Solo Delete Button ───────────────────────────────────────────── */
+.solo-delete-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+}
+
+.solo-delete-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.solo-delete-btn:hover {
+    background: var(--danger-bg);
+    color: var(--danger);
+}
