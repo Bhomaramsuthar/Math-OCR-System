@@ -46,7 +46,7 @@ The system follows a clean **three-tier architecture**: a static frontend dashbo
 
 
 <p align="center">
-  <a href="YOUR_LIVE_APP_URL_HERE">
+  <a href="https://math-ocr-system.vercel.app">
     <img src="https://img.shields.io/badge/🚀_View_Live_Deployed_App-10b981?style=for-the-badge&logoColor=white" alt="View Live App" />
   </a>
   <a href="https://bhomaramsuthar.github.io/Math-OCR-System/architecture-diagram.html">
