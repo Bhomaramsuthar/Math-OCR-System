@@ -282,7 +282,7 @@ While **The Editorial** handles a wide range of mathematical expressions, there 
 | Area | Limitation |
 |---|---|
 | **Expression Complexity** | The solver rejects expressions longer than 100 characters or with more than 10 backslash commands — a safety guard against pathological inputs that could hang the CAS engine. |
-| **Supported Math Types** | Currently limited to **algebraic equations**, **integrals** (definite & indefinite), and **expression simplification**. Differential equations, limits, summations, and matrix operations are not yet solvable. |
+| **Supported Math Types** | Currently limited to **algebraic equations**, **integrals** (definite & indefinite), **expression simplification**, **Differential equations**, **limits**, **summations**& **matrix operations** are not yet solvable. |
 | **OCR Accuracy** | Heavily stylised handwriting, overlapping symbols, or very low-resolution images can produce incorrect LaTeX. Multi-line or multi-equation images are not supported — only single expressions per image. |
 | **LaTeX Subset** | Unsupported LaTeX constructs include `\begin{array}`, `\mathbb`, `\mathbf`, and `\operatorname` (except for inverse trig). These are flagged as "garbage" and rejected. |
 | **No Step-by-Step** | The solver returns the final answer only — intermediate algebraic steps (factoring, substitution, etc.) are not shown. |
@@ -295,28 +295,12 @@ While **The Editorial** handles a wide range of mathematical expressions, there 
 
 ## 🔮 Future Scope & Features
 
-### 🟢 Short-Term (Next Release)
-
 - [ ] **Multi-step Solution Breakdown** — Show intermediate algebraic steps (factoring, substitution, integration by parts) instead of just the final answer, using SymPy's step-by-step solver.
-- [ ] **Real-time Canvas OCR** — Implement debounced, live OCR recognition as the user draws, with a streaming LaTeX preview that updates every 500ms of inactivity.
-- [ ] **Export to PDF / LaTeX** — Allow users to export their equation history as a formatted PDF or `.tex` document for academic use.
 - [ ] **Improved Error Messages** — Surface specific feedback when OCR fails (e.g., "Handwriting too faint — try a darker pen") instead of generic error strings.
-
-### 🟡 Mid-Term (3–6 Months)
-
-- [ ] **Differential Equations** — Extend the solver to handle ODEs using `sympy.dsolve()`, with automatic classification of equation order and type.
+- [ ] **User Authentication** — Add OAuth-based login (Google/GitHub) so equation history persists across devices and browsers.
 - [ ] **Matrix & Linear Algebra** — Support for determinants, eigenvalues, matrix multiplication, and systems of linear equations via `sympy.Matrix`.
 - [ ] **Custom Model Fine-Tuning** — Fine-tune the Texify model on a curated dataset of handwritten math to improve recognition accuracy for non-standard notations and regional handwriting styles.
-- [ ] **User Authentication** — Add OAuth-based login (Google/GitHub) so equation history persists across devices and browsers.
-- [ ] **Batch Image Processing** — Upload multiple images at once and process them as a queue, displaying results in a gallery view.
 
-### 🔴 Long-Term (Vision)
-
-- [ ] **Collaborative Sessions** — WebSocket-based real-time collaboration where multiple users can draw and solve equations in a shared workspace, like a mathematical whiteboard.
-- [ ] **Mobile App** — A React Native or Flutter companion app with camera integration for instant "point and solve" functionality.
-- [ ] **Graph Visualization** — Interactive 2D/3D function plotting powered by Plotly or D3.js, directly embedded in the solution panel.
-- [ ] **LLM-Powered Explanations** — Integrate an LLM to provide natural-language explanations alongside symbolic solutions (e.g., "This integral was solved using u-substitution where u = sin(x)").
-- [ ] **Plugin Architecture** — Expose a plugin API so the community can add custom solvers, preprocessors, or output formatters.
 
 ---
 
