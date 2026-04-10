@@ -9,7 +9,7 @@
     // ════════════════════════════════════════════════════════════════
     // 1. CONFIGURATION & SESSION
     // ════════════════════════════════════════════════════════════════
-    const API_URL = 'https://huggingface.co/spaces/Bhomaram/ocr-api';
+    const API_URL = 'https://bhomaram-ocr-api.hf.space';
 
     function getSessionId() {
         let sid = localStorage.getItem('session_id');
