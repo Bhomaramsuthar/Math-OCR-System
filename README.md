@@ -42,41 +42,7 @@ Under the hood it chains together:
 
 The system follows a clean **three-tier architecture**: a static frontend dashboard, a FastAPI REST backend, and a MongoDB persistence layer.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     THE EDITORIAL UI                        │
-│   Canvas (Draw) │ Upload (Image) │ MathQuill (Type LaTeX)   │
-│                 ↓ Parse Input                               │
-│        KaTeX Rendering  ←  Solution Display                 │
-└────────────────────────┬────────────────────────────────────┘
-                         │  HTTP / REST
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   FASTAPI BACKEND                           │
-│                                                             │
-│  /upload-equation          /solve            /history       │
-│       │                       │                  │          │
-│       ▼                       ▼                  ▼          │
-│  ┌──────────┐  ┌───────────────────────┐  ┌────────────┐   │
-│  │ Preproc. │  │     Solver Engine     │  │  DB Layer  │   │
-│  │ Pipeline │  │  latex2sympy2 → SymPy │  │  PyMongo   │   │
-│  │ OpenCV   │  │  regex fallback path  │  │            │   │
-│  └────┬─────┘  └───────────────────────┘  └────────────┘   │
-│       ▼                                                     │
-│  ┌──────────────────────┐                                   │
-│  │    Hybrid OCR        │                                   │
-│  │ Texify + Pix2Tex     │                                   │
-│  │ LaTeX Normalizer     │                                   │
-│  └──────────────────────┘                                   │
-└─────────────────────────────────────────────────────────────┘
-                         │
-                         ▼
-              ┌─────────────────────┐
-              │   MongoDB Atlas     │
-              │   math_ocr_db      │
-              │   └─ equation      │
-              └─────────────────────┘
-```
+![Architecture Diagram](assests/images/architecture-diagram.png)
 
 
 <p align="center">
@@ -84,6 +50,7 @@ The system follows a clean **three-tier architecture**: a static frontend dashbo
     <img src="https://img.shields.io/badge/🏗️_View_Full_Interactive_Architecture-6366f1?style=for-the-badge&logoColor=white" alt="View Full Architecture" />
   </a>
 </p>
+
 
 > 💡 *Click the button above to explore the full interactive architecture diagram — built as a standalone HTML page with animated data flow, API endpoint maps, database schema, and OCR pipeline breakdown.*
 
