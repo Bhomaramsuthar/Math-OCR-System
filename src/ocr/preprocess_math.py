@@ -38,7 +38,7 @@ DEFAULTS = {
     "adaptive_block": 41, 
     "pad": 60,
     "deskew_angle": 45.0,
-    "stroke_threshold": 5.0 # Boundary between "broken ink" and "thick marker"
+    "stroke_threshold": 5 # Boundary between "broken ink" and "thick marker"
 }
 
 # -------------------------
@@ -171,12 +171,14 @@ def smart_binarize(gray: np.ndarray, block_size: int) -> np.ndarray:
 
     # If strokes are thin/fragmented, apply the heavy fix. Otherwise, leave it alone.
     if stroke_width < DEFAULTS["stroke_threshold"]:
-        print("Smart-Tuner: Fragmented ink detected. Applying Kernel 3 fix...")
+        print("Smart-Tuner: Fragmented ink detected. Applying Kernel 3 fix and dilating...")
         bw_aggro = cv2.adaptiveThreshold(
             gray_blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, block_size, 3
         )
         ink = cv2.bitwise_not(bw_aggro)
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+        # Dilate to physically thicken the strokes so they connect properly
+        ink = cv2.dilate(ink, kernel, iterations=1)
         ink = cv2.morphologyEx(ink, cv2.MORPH_CLOSE, kernel)
         bw_final = cv2.bitwise_not(ink)
     else:
@@ -212,6 +214,15 @@ def preprocess_image_auto(
 
         # Gentle OTSU threshold for digital text
         _, bw = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        
+        # Thicken digital strokes if they are too thin
+        stroke_width = estimate_stroke_width(bw)
+        if stroke_width < DEFAULTS["stroke_threshold"]:
+            print(f"Bypass Layer: Digital ink is thin ({stroke_width:.2f}px). Thickening...")
+            ink = cv2.bitwise_not(bw)
+            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+            ink = cv2.dilate(ink, kernel, iterations=1)
+            bw = cv2.bitwise_not(ink)
         
     # 3. HANDWRITTEN PAPER PIPELINE
     else:
