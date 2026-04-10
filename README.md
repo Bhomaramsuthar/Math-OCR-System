@@ -306,11 +306,12 @@ While **The Editorial** handles a wide range of mathematical expressions, there 
 
 ## 📸 Screenshots & Demo
 
-<!-- PLACEHOLDER: Add your screenshots and demo video here -->
+![Canvas Panel](assests/images/workspace-draw-test.png)
+![Upload Panel](assests/images/workspace-upload-test.png)
+![Processing/solving Panel](assests/images/workspace-draw-processed-test.png)
+![History Panel](assests/images/math-ocr-system-history-panel.png)
+![Settings Panel](assests/images/math-ocr-system-settings-panel.png)
 
-> **🎥 Demo Video**
->
-> *Coming soon — record a walkthrough showing the draw → parse → solve flow.*
 
 | Feature | Screenshot |
 |---|---|
