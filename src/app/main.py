@@ -46,8 +46,9 @@ async def process_equation(
     session_id: str = Form(...) 
 ):
     try:
-        temp_path = f"data/raw_images/{file.filename}"
-        os.makedirs(os.path.dirname(temp_path), exist_ok=True)
+        import tempfile
+        temp_dir = tempfile.gettempdir()
+        temp_path = os.path.join(temp_dir, file.filename)
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 

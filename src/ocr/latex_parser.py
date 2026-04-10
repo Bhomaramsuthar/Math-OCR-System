@@ -1,4 +1,4 @@
-from sympy.parsing.latex import parse_latex
+from latex2sympy2 import latex2sympy
 
 # Re-use the same sanitisation pipeline that the solver uses,
 # so any raw OCR string is cleaned before SymPy ever sees it.
@@ -11,13 +11,13 @@ class EquationParser:
         Converts a LaTeX string into a structured dictionary (ready for JSON/MongoDB).
 
         The raw input is first run through ``sanitize_latex`` to fix common
-        OCR-generated formatting quirks that would otherwise crash ``parse_latex``.
+        OCR-generated formatting quirks that would otherwise crash parsing.
         """
         try:
             cleaned = sanitize_latex(latex_str)
 
             # 1. Parse LaTeX into a SymPy expression object
-            expr = parse_latex(cleaned)
+            expr = latex2sympy(cleaned)
 
             # 2. Build the basic structured representation
             structured_data = {
