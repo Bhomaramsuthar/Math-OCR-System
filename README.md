@@ -42,7 +42,7 @@ Under the hood it chains together:
 
 The system follows a clean **three-tier architecture**: a static frontend dashboard, a FastAPI REST backend, and a MongoDB persistence layer.
 
-![Architecture Diagram](assests/images/architecture-diagram.png)
+![Architecture Diagram](assests/images/architecture-dark.png)
 
 
 <p align="center">
