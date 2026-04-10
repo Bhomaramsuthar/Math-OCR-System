@@ -78,9 +78,14 @@ The system follows a clean **three-tier architecture**: a static frontend dashbo
               └─────────────────────┘
 ```
 
-> 💡 *Replace this ASCII diagram with a Mermaid flowchart or architecture image for your portfolio.*
 
-<!-- PLACEHOLDER: Mermaid diagram or architecture screenshot -->
+<p align="center">
+  <a href="https://bhomaramsuthar.github.io/Math-OCR-System/architecture-diagram.html">
+    <img src="https://img.shields.io/badge/🏗️_View_Full_Interactive_Architecture-6366f1?style=for-the-badge&logoColor=white" alt="View Full Architecture" />
+  </a>
+</p>
+
+> 💡 *Click the button above to explore the full interactive architecture diagram — built as a standalone HTML page with animated data flow, API endpoint maps, database schema, and OCR pipeline breakdown.*
 
 ---
 
