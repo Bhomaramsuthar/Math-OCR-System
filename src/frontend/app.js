@@ -9,7 +9,7 @@
     // ════════════════════════════════════════════════════════════════
     // 1. CONFIGURATION & SESSION
     // ════════════════════════════════════════════════════════════════
-    const API_URL = 'http://127.0.0.1:8000';
+    const API_URL = 'https://huggingface.co/spaces/Bhomaram/ocr-api';
 
     function getSessionId() {
         let sid = localStorage.getItem('session_id');
@@ -668,17 +668,17 @@
     historyGrid.addEventListener('click', async (e) => {
         const deleteBtn = e.target.closest('.solo-delete-btn');
         if (!deleteBtn) return;
-        
+
         e.stopPropagation();
-        
+
         if (!confirm('Are you sure you want to delete this equation?')) return;
-        
+
         const id = deleteBtn.dataset.id;
         try {
             const response = await fetch(`${API_URL}/history/${id}`, {
                 method: 'DELETE'
             });
-            
+
             if (response.ok) {
                 allHistory = allHistory.filter(item => item._id !== id);
                 renderHistory();
