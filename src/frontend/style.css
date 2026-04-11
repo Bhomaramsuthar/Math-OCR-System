@@ -1607,3 +1607,253 @@ input, textarea, select { font-family: inherit; }
     background: var(--danger-bg);
     color: var(--danger);
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE MATH KEYBOARD
+   A fixed-bottom on-screen keyboard for typing equations on mobile.
+   Bypasses the native virtual keyboard which MathQuill can't use.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.mobile-math-keyboard {
+    display: none; /* Hidden on desktop */
+}
+
+/* Show only on mobile (<1025px) when workspace page is active */
+@media (max-width: 1024px) {
+    .mobile-math-keyboard {
+        display: block;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 500;
+    }
+}
+
+/* ── Keyboard Toggle Bar ─────────────────────────────────────────── */
+.mkb-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 16px;
+    background: var(--bg-secondary);
+    border: none;
+    border-top: 1px solid var(--border);
+    color: var(--accent);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 44px;
+    transition: background var(--transition-fast);
+}
+
+.mkb-toggle:hover {
+    background: var(--bg-card-hover);
+}
+
+.mkb-toggle svg {
+    flex-shrink: 0;
+}
+
+/* ── Keyboard Panel (expandable) ─────────────────────────────────── */
+.mkb-panel {
+    display: none;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border);
+    padding: 0;
+    max-height: 300px;
+    overflow: hidden;
+    transition: max-height var(--transition-smooth);
+}
+
+.mkb-panel.open {
+    display: block;
+    animation: slideUpKb 0.25s ease forwards;
+}
+
+@keyframes slideUpKb {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Tab Row ─────────────────────────────────────────────────────── */
+.mkb-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.mkb-tab {
+    flex: 1;
+    min-width: 56px;
+    padding: 10px 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+    min-height: 44px;
+}
+
+.mkb-tab:hover {
+    color: var(--text-secondary);
+}
+
+.mkb-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: var(--accent-subtle);
+}
+
+/* ── Key Grid ────────────────────────────────────────────────────── */
+.mkb-keys {
+    padding: 8px;
+}
+
+.mkb-grid {
+    display: none;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+
+.mkb-grid.active {
+    display: grid;
+}
+
+.mkb-grid-wide {
+    /* Functions/structures use fewer, wider buttons */
+    grid-template-columns: repeat(3, 1fr);
+}
+
+/* ── Individual Key ──────────────────────────────────────────────── */
+.mkb-key {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 8px 4px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 1.05rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+.mkb-key:active {
+    background: var(--accent);
+    color: #FFFFFF;
+    transform: scale(0.94);
+    border-color: var(--accent);
+}
+
+.mkb-key-wide {
+    font-size: 0.85rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   VOICE INPUT BUTTON & TRANSCRIPT
+   ═══════════════════════════════════════════════════════════════════ */
+
+.voice-input-btn {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.voice-input-btn.listening {
+    background: var(--danger);
+    color: #FFFFFF;
+    border-color: var(--danger);
+    animation: voicePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes voicePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    50%      { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+}
+
+.voice-transcript {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: var(--accent-subtle);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: var(--radius-md);
+    margin-bottom: 12px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.voice-pulse {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--danger);
+    animation: voiceDotPulse 1s ease-in-out infinite;
+    flex-shrink: 0;
+}
+
+@keyframes voiceDotPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.4; transform: scale(0.7); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE-SPECIFIC OVERRIDES
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Hide the desktop quick-symbols panel on mobile; the math keyboard replaces it */
+@media (max-width: 1024px) {
+    .desktop-only-symbols {
+        display: none !important;
+    }
+
+    /* Taller canvas on mobile for finger drawing */
+    #drawingCanvas {
+        height: 320px;
+    }
+
+    /* Add bottom padding so content isn't hidden behind sticky keyboard */
+    .main-content {
+        padding-bottom: 160px;
+    }
+
+    /* Canvas toolbar wrapping on smaller screens */
+    .canvas-toolbar {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    /* Hide thickness slider on small screens to reduce clutter */
+    .thickness-slider {
+        display: none;
+    }
+
+    /* Hide dot-size presets on mobile to declutter */
+    .dot-size {
+        display: none;
+    }
+
+    /* Prevent MathQuill from opening native keyboard on tap */
+    .mq-editable-field textarea {
+        font-size: 16px !important; /* Prevents iOS zoom */
+        opacity: 0 !important;
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        pointer-events: none !important;
+    }
+}

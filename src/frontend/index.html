@@ -103,11 +103,13 @@
                         manual entry. Our editorial engine transforms symbols into truth.</p>
                 </div>
 
-                <!-- Draw / Upload Toggle -->
+                <!-- Input Mode Toggle (Draw / Scan / Type) -->
                 <div class="workspace-toggle">
                     <div class="segmented-control" id="modeToggle">
-                        <button type="button" class="segment-btn active" data-mode="draw" id="modeDraw">Draw</button>
-                        <button type="button" class="segment-btn" data-mode="upload" id="modeUpload">Upload</button>
+                        <button type="button" class="segment-btn active" data-mode="draw" id="modeDraw"
+                            aria-label="Draw mode">Draw</button>
+                        <button type="button" class="segment-btn" data-mode="upload" id="modeUpload"
+                            aria-label="Scan or upload mode">Scan</button>
                     </div>
                 </div>
 
@@ -197,10 +199,12 @@
                         <div class="dropzone-title">Equation Vision</div>
                         <p class="dropzone-text">Drop your PNG, JPG, or PDF here for instant OCR parsing and conversion
                             to LaTeX.</p>
-                        <button type="button" class="btn btn-secondary" id="uploadDocBtn" style="width:100%">Upload
-                            Document</button>
+                        <button type="button" class="btn btn-secondary" id="uploadDocBtn" style="width:100%"
+                            aria-label="Upload document">
+                            Upload Document</button>
+                        <!-- Camera-first capture on mobile via capture attribute -->
                         <input type="file" id="fileInput" accept="image/png,image/jpeg,image/jpg,application/pdf"
-                            style="display:none">
+                            capture="environment" style="display:none">
                         <div class="dropzone-formats">
                             <span class="badge-format">PDF</span>
                             <span class="badge-format">JPEG</span>
@@ -240,6 +244,22 @@
                             <line x1="12" y1="19" x2="20" y2="19" />
                         </svg>
                         Equation Editor
+                        <!-- Voice input button -->
+                        <button type="button" class="btn-icon voice-input-btn" id="voiceInputBtn"
+                            aria-label="Voice input" title="Speak equation">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                                <line x1="12" y1="19" x2="12" y2="23" />
+                                <line x1="8" y1="23" x2="16" y2="23" />
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- Voice transcript feedback -->
+                    <div id="voiceTranscript" class="voice-transcript" style="display:none">
+                        <span class="voice-pulse"></span>
+                        <span id="voiceTranscriptText">Listening...</span>
                     </div>
                     <div class="editor-layout mt-md">
                         <div class="editor-textarea-wrapper">
@@ -256,7 +276,7 @@
                                 <span id="mathErrorText"></span>
                             </p>
                         </div>
-                        <div class="quick-symbols">
+                        <div class="quick-symbols desktop-only-symbols">
                             <div class="quick-symbols-title">Quick Symbols</div>
                             <div class="symbols-grid">
                                 <button type="button" class="symbol-btn" data-cmd="\pi" title="pi">π</button>
@@ -512,6 +532,151 @@
 
         </div>
     </main>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         MOBILE MATH KEYBOARD (visible on mobile only)
+         ═══════════════════════════════════════════════════════════════ -->
+    <div id="mobileMathKeyboard" class="mobile-math-keyboard" aria-label="Math keyboard">
+        <!-- Toggle keyboard visibility -->
+        <button type="button" class="mkb-toggle" id="mkbToggle" aria-label="Toggle math keyboard">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <line x1="6" y1="8" x2="6" y2="8" />
+                <line x1="10" y1="8" x2="10" y2="8" />
+                <line x1="14" y1="8" x2="14" y2="8" />
+                <line x1="18" y1="8" x2="18" y2="8" />
+                <line x1="6" y1="12" x2="18" y2="12" />
+                <line x1="6" y1="16" x2="6" y2="16" />
+                <line x1="10" y1="16" x2="14" y2="16" />
+                <line x1="18" y1="16" x2="18" y2="16" />
+            </svg>
+            <span>Math Keyboard</span>
+        </button>
+        <div class="mkb-panel" id="mkbPanel">
+            <!-- Tab navigation -->
+            <div class="mkb-tabs">
+                <button type="button" class="mkb-tab active" data-tab="numbers" aria-label="Numbers">123</button>
+                <button type="button" class="mkb-tab" data-tab="operators" aria-label="Operators">±×</button>
+                <button type="button" class="mkb-tab" data-tab="algebra" aria-label="Algebra">x²</button>
+                <button type="button" class="mkb-tab" data-tab="functions" aria-label="Functions">f(x)</button>
+                <button type="button" class="mkb-tab" data-tab="structures" aria-label="Structures">▦</button>
+            </div>
+            <!-- Key grids -->
+            <div class="mkb-keys" id="mkbKeys">
+                <!-- Numbers tab (default) -->
+                <div class="mkb-grid active" data-tab="numbers">
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="7">7</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="8">8</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="9">9</button>
+                    <button type="button" class="mkb-key" data-type="keystroke" data-val="Backspace"
+                        aria-label="Backspace">⌫</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="4">4</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="5">5</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="6">6</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="+">+</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="1">1</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="2">2</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="3">3</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="-">−</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="0">0</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val=".">.</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="=">=</button>
+                    <button type="button" class="mkb-key" data-type="keystroke" data-val="Right"
+                        aria-label="Move right">→</button>
+                </div>
+                <!-- Operators tab -->
+                <div class="mkb-grid" data-tab="operators">
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="+">+</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="-">−</button>
+                    <button type="button" class="mkb-key" data-type="latex" data-val="\\times">×</button>
+                    <button type="button" class="mkb-key" data-type="latex" data-val="\\div">÷</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="=">=</button>
+                    <button type="button" class="mkb-key" data-type="latex" data-val="\\neq">≠</button>
+                    <button type="button" class="mkb-key" data-type="latex" data-val="\\lt">&lt;</button>
+                    <button type="button" class="mkb-key" data-type="latex" data-val="\\gt">&gt;</button>
+                    <button type="button" class="mkb-key" data-type="latex" data-val="\\leq">≤</button>
+                    <button type="button" class="mkb-key" data-type="latex" data-val="\\geq">≥</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="(">(</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val=")">)</button>
+                    <button type="button" class="mkb-key" data-type="latex" data-val="\\pm">±</button>
+                    <button type="button" class="mkb-key" data-type="latex" data-val="\\cdot">·</button>
+                    <button type="button" class="mkb-key" data-type="keystroke" data-val="Backspace"
+                        aria-label="Backspace">⌫</button>
+                    <button type="button" class="mkb-key" data-type="keystroke" data-val="Right"
+                        aria-label="Move right">→</button>
+                </div>
+                <!-- Algebra tab -->
+                <div class="mkb-grid" data-tab="algebra">
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="x">x</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="y">y</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="z">z</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="n">n</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="a">a</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="b">b</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="c">c</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="^">^</button>
+                    <button type="button" class="mkb-key" data-type="write" data-val="x^{2}">x²</button>
+                    <button type="button" class="mkb-key" data-type="write" data-val="x^{3}">x³</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="\sqrt">√</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="\pi">π</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="\theta">θ</button>
+                    <button type="button" class="mkb-key" data-type="cmd" data-val="\infty">∞</button>
+                    <button type="button" class="mkb-key" data-type="keystroke" data-val="Backspace"
+                        aria-label="Backspace">⌫</button>
+                    <button type="button" class="mkb-key" data-type="keystroke" data-val="Right"
+                        aria-label="Move right">→</button>
+                </div>
+                <!-- Functions tab -->
+                <div class="mkb-grid mkb-grid-wide" data-tab="functions">
+                    <button type="button" class="mkb-key mkb-key-wide" data-type="write"
+                        data-val="\\sin\\left(\\right)">sin()</button>
+                    <button type="button" class="mkb-key mkb-key-wide" data-type="write"
+                        data-val="\\cos\\left(\\right)">cos()</button>
+                    <button type="button" class="mkb-key mkb-key-wide" data-type="write"
+                        data-val="\\tan\\left(\\right)">tan()</button>
+                    <button type="button" class="mkb-key mkb-key-wide" data-type="write"
+                        data-val="\\log\\left(\\right)">log()</button>
+                    <button type="button" class="mkb-key mkb-key-wide" data-type="write"
+                        data-val="\\ln\\left(\\right)">ln()</button>
+                    <button type="button" class="mkb-key mkb-key-wide" data-type="cmd" data-val="\sum">Σ</button>
+                    <button type="button" class="mkb-key mkb-key-wide" data-type="cmd" data-val="\int">∫</button>
+                    <button type="button" class="mkb-key mkb-key-wide" data-type="write"
+                        data-val="\\lim_{x \\to }">lim</button>
+                    <button type="button" class="mkb-key" data-type="keystroke" data-val="Backspace"
+                        aria-label="Backspace">⌫</button>
+                    <button type="button" class="mkb-key" data-type="keystroke" data-val="Left"
+                        aria-label="Move left">←</button>
+                    <button type="button" class="mkb-key" data-type="keystroke" data-val="Right"
+                        aria-label="Move right">→</button>
+                </div>
+                <!-- Structures tab -->
+                <div class="mkb-grid mkb-grid-wide" data-tab="structures">
+                    <button type="button" class="mkb-key mkb-key-wide" data-type="cmd" data-val="/"
+                        aria-label="Fraction">▫/▫</button>
+                    <button type="button" class="mkb-key mkb-key-wide" data-type="write" data-val="x^{}"
+                        aria-label="Power">x^▫</button>
+                    <button type="button" class="mkb-key mkb-key-wide" data-type="write" data-val="x_{}"
+                        aria-label="Subscript">x₋</button>
+                    <button type="button" class="mkb-key mkb-key-wide" data-type="cmd" data-val="\sqrt"
+                        aria-label="Square root">√▫</button>
+                    <button type="button" class="mkb-key mkb-key-wide" data-type="write" data-val="\\left(\\right)"
+                        aria-label="Parentheses">(▫)</button>
+                    <button type="button" class="mkb-key mkb-key-wide" data-type="write" data-val="\\left[\\right]"
+                        aria-label="Brackets">[▫]</button>
+                    <button type="button" class="mkb-key mkb-key-wide" data-type="write" data-val="\\left|\\right|"
+                        aria-label="Absolute value">|▫|</button>
+                    <button type="button" class="mkb-key mkb-key-wide" data-type="write" data-val="\\int_{}^{}"
+                        aria-label="Definite integral">∫ᵃᵇ</button>
+                    <button type="button" class="mkb-key" data-type="keystroke" data-val="Backspace"
+                        aria-label="Backspace">⌫</button>
+                    <button type="button" class="mkb-key" data-type="keystroke" data-val="Left"
+                        aria-label="Move left">←</button>
+                    <button type="button" class="mkb-key" data-type="keystroke" data-val="Right"
+                        aria-label="Move right">→</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- App Script -->
     <script src="app.js"></script>

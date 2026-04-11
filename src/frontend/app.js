@@ -1060,4 +1060,217 @@
     // Load history on initial page load (in background)
     loadHistory();
 
+    // ════════════════════════════════════════════════════════════════
+    // 18. MOBILE MATH KEYBOARD
+    // Provides on-screen equation input since native mobile keyboards
+    // cannot interact with MathQuill's internal textarea.
+    // ════════════════════════════════════════════════════════════════
+    const mkbToggle = document.getElementById('mkbToggle');
+    const mkbPanel = document.getElementById('mkbPanel');
+    const mkbTabs = document.querySelectorAll('.mkb-tab');
+    const mkbGrids = document.querySelectorAll('.mkb-grid');
+
+    if (mkbToggle && mkbPanel) {
+        // Toggle keyboard panel open/closed
+        mkbToggle.addEventListener('click', () => {
+            mkbPanel.classList.toggle('open');
+            // Focus MathQuill when keyboard opens
+            if (mkbPanel.classList.contains('open')) {
+                visualMathField.focus();
+            }
+        });
+
+        // Tab switching
+        mkbTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.dataset.tab;
+                // Update active tab
+                mkbTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                // Show corresponding grid
+                mkbGrids.forEach(g => {
+                    g.classList.toggle('active', g.dataset.tab === tabName);
+                });
+            });
+        });
+
+        // Key press handling — route to MathQuill via its API
+        document.getElementById('mkbKeys').addEventListener('click', (e) => {
+            const key = e.target.closest('.mkb-key');
+            if (!key) return;
+
+            // Ensure MathQuill has focus
+            visualMathField.focus();
+
+            const type = key.dataset.type;
+            const val = key.dataset.val;
+
+            switch (type) {
+                case 'cmd':
+                    // Single-character commands (digits, letters, operators)
+                    visualMathField.cmd(val);
+                    break;
+                case 'write':
+                    // Multi-character LaTeX sequences
+                    visualMathField.write(val);
+                    break;
+                case 'latex':
+                    // Full LaTeX commands like \times
+                    visualMathField.write(val);
+                    break;
+                case 'keystroke':
+                    // Navigation & editing keystrokes
+                    visualMathField.keystroke(val);
+                    break;
+            }
+        });
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // 19. VOICE INPUT (Web Speech API → LaTeX)
+    // Rule-based conversion of spoken math to LaTeX for insertion
+    // into the MathQuill editor.
+    // ════════════════════════════════════════════════════════════════
+    const voiceInputBtn = document.getElementById('voiceInputBtn');
+    const voiceTranscript = document.getElementById('voiceTranscript');
+    const voiceTranscriptText = document.getElementById('voiceTranscriptText');
+
+    let recognition = null;
+    let isListening = false;
+
+    // Spoken math → LaTeX mapping (rule-based, extensible)
+    const voiceMathPatterns = [
+        // Powers
+        { pattern: /(\w+)\s*(?:squared|square)/gi, latex: (_, v) => `${v}^{2}` },
+        { pattern: /(\w+)\s*cubed/gi, latex: (_, v) => `${v}^{3}` },
+        { pattern: /(\w+)\s*(?:to the power of|to the)\s*(\d+)/gi, latex: (_, v, p) => `${v}^{${p}}` },
+        // Roots
+        { pattern: /(?:square root of|sqrt)\s*(\w+)/gi, latex: (_, v) => `\\sqrt{${v}}` },
+        { pattern: /(?:cube root of)\s*(\w+)/gi, latex: (_, v) => `\\sqrt[3]{${v}}` },
+        // Integrals
+        { pattern: /(?:integral|integrate)\s*(?:from)\s*(\w+)\s*(?:to)\s*(\w+)/gi, latex: (_, a, b) => `\\int_{${a}}^{${b}}` },
+        { pattern: /(?:integral|integrate)/gi, latex: () => `\\int` },
+        // Fractions
+        { pattern: /(\w+)\s*(?:over|divided by)\s*(\w+)/gi, latex: (_, n, d) => `\\frac{${n}}{${d}}` },
+        // Trigonometric functions
+        { pattern: /(?:sine|sin)\s*(?:of)?\s*(\w+)?/gi, latex: (_, v) => v ? `\\sin(${v})` : `\\sin()` },
+        { pattern: /(?:cosine|cos)\s*(?:of)?\s*(\w+)?/gi, latex: (_, v) => v ? `\\cos(${v})` : `\\cos()` },
+        { pattern: /(?:tangent|tan)\s*(?:of)?\s*(\w+)?/gi, latex: (_, v) => v ? `\\tan(${v})` : `\\tan()` },
+        // Logarithms
+        { pattern: /(?:log|logarithm)\s*(?:of)?\s*(\w+)?/gi, latex: (_, v) => v ? `\\log(${v})` : `\\log()` },
+        { pattern: /(?:natural log|ln)\s*(?:of)?\s*(\w+)?/gi, latex: (_, v) => v ? `\\ln(${v})` : `\\ln()` },
+        // Constants
+        { pattern: /\bpi\b/gi, latex: () => `\\pi` },
+        { pattern: /\binfinity\b/gi, latex: () => `\\infty` },
+        { pattern: /\btheta\b/gi, latex: () => `\\theta` },
+        { pattern: /\balpha\b/gi, latex: () => `\\alpha` },
+        { pattern: /\bbeta\b/gi, latex: () => `\\beta` },
+        // Operators
+        { pattern: /\bplus\b/gi, latex: () => `+` },
+        { pattern: /\bminus\b/gi, latex: () => `-` },
+        { pattern: /\btimes\b/gi, latex: () => `\\times` },
+        { pattern: /\bequals?\b/gi, latex: () => `=` },
+    ];
+
+    function spokenToLatex(text) {
+        let result = text.trim();
+
+        // Apply pattern replacements
+        for (const { pattern, latex } of voiceMathPatterns) {
+            // Reset lastIndex for global regexes
+            pattern.lastIndex = 0;
+            result = result.replace(pattern, latex);
+        }
+
+        return result;
+    }
+
+    // Initialize Speech Recognition if supported
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = () => {
+            isListening = true;
+            voiceInputBtn.classList.add('listening');
+            voiceTranscript.style.display = 'flex';
+            voiceTranscriptText.textContent = 'Listening...';
+        };
+
+        recognition.onresult = (event) => {
+            let finalTranscript = '';
+            let interimTranscript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript;
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+
+            // Show interim results as feedback
+            voiceTranscriptText.textContent = interimTranscript || finalTranscript || 'Listening...';
+
+            if (finalTranscript) {
+                const latex = spokenToLatex(finalTranscript);
+                voiceTranscriptText.textContent = `"${finalTranscript}" → ${latex}`;
+                // Insert into MathQuill
+                visualMathField.focus();
+                visualMathField.write(latex);
+            }
+        };
+
+        recognition.onend = () => {
+            isListening = false;
+            voiceInputBtn.classList.remove('listening');
+            // Hide transcript after brief delay
+            setTimeout(() => {
+                voiceTranscript.style.display = 'none';
+            }, 2000);
+        };
+
+        recognition.onerror = (event) => {
+            isListening = false;
+            voiceInputBtn.classList.remove('listening');
+            voiceTranscriptText.textContent = `Error: ${event.error}`;
+            setTimeout(() => {
+                voiceTranscript.style.display = 'none';
+            }, 3000);
+        };
+    }
+
+    if (voiceInputBtn) {
+        voiceInputBtn.addEventListener('click', () => {
+            if (!recognition) {
+                alert('Speech recognition is not supported in this browser. Try Chrome or Safari.');
+                return;
+            }
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        });
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // 20. DEVICE DETECTION — AUTO MODE SELECTION
+    // On mobile, default to Draw mode; the math keyboard handles
+    // equation editing. On desktop, the MathQuill editor works natively.
+    // ════════════════════════════════════════════════════════════════
+    function isMobileDevice() {
+        return window.innerWidth <= 1024 ||
+            /Android|iPhone|iPad|iPod|webOS|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent);
+    }
+
+    // Auto-select draw mode on mobile
+    if (isMobileDevice()) {
+        setMode('draw');
+    }
+
 })();
