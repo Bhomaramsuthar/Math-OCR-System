@@ -1855,5 +1855,19 @@ input, textarea, select { font-family: inherit; }
         width: 1px !important;
         height: 1px !important;
         pointer-events: none !important;
+        user-select: none !important;
+        -webkit-user-select: none !important;
+    }
+
+    /* Prevent focus outline from showing on hidden textarea */
+    .mq-editable-field textarea:focus {
+        outline: none !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    /* Ensure the editor itself remains focusable for the cursor to show */
+    .mq-editable-field {
+        -webkit-tap-highlight-color: transparent;
     }
 }

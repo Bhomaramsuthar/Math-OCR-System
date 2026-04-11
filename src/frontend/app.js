@@ -21,6 +21,11 @@
     }
     const sessionId = getSessionId();
 
+    function isMobileDevice() {
+        return window.innerWidth <= 1024 ||
+            /Android|iPhone|iPad|iPod|webOS|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent);
+    }
+
     // ════════════════════════════════════════════════════════════════
     // 2. SPA NAVIGATION
     // ════════════════════════════════════════════════════════════════
@@ -365,6 +370,32 @@
     const visualMathField = MQ.MathField(mathEditorEl, {
         spaceBehavesLikeTab: true,
     });
+
+    // ── MOBILE KEYBOARD SUPPRESSION ──
+    // Prevent the native mobile keyboard from popping up, as we use our custom one.
+    // The inputmode="none" attribute is the modern standards-based way to do this.
+    const mqTextarea = mathEditorEl.querySelector('textarea');
+    if (mqTextarea) {
+        mqTextarea.setAttribute('inputmode', 'none');
+        // On many mobile browsers, readonly prevents the keyboard but still allows focus/cursor
+        if (isMobileDevice()) {
+            mqTextarea.setAttribute('readonly', 'true');
+        }
+        
+        // Prevent tapping the hidden textarea from showing keyboard
+        mqTextarea.addEventListener('touchstart', (e) => {
+            if (isMobileDevice()) {
+                e.stopPropagation();
+            }
+        }, {passive: true});
+        
+        mqTextarea.addEventListener('focus', (e) => {
+            if (isMobileDevice()) {
+                mqTextarea.setAttribute('inputmode', 'none');
+                mqTextarea.setAttribute('readonly', 'true');
+            }
+        });
+    }
 
     const parseInputBtn = document.getElementById('parseInputBtn');
     const dbIdSpan = document.getElementById('dbId');
@@ -1099,8 +1130,10 @@
             const key = e.target.closest('.mkb-key');
             if (!key) return;
 
-            // Ensure MathQuill has focus
-            visualMathField.focus();
+            // Ensure MathQuill has focus, but avoid re-triggering if already focused on mobile
+            if (!isMobileDevice() || document.activeElement !== mqTextarea) {
+                visualMathField.focus();
+            }
 
             const type = key.dataset.type;
             const val = key.dataset.val;
@@ -1258,19 +1291,9 @@
         });
     }
 
-    // ════════════════════════════════════════════════════════════════
-    // 20. DEVICE DETECTION — AUTO MODE SELECTION
-    // On mobile, default to Draw mode; the math keyboard handles
-    // equation editing. On desktop, the MathQuill editor works natively.
-    // ════════════════════════════════════════════════════════════════
-    function isMobileDevice() {
-        return window.innerWidth <= 1024 ||
-            /Android|iPhone|iPad|iPod|webOS|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent);
-    }
-
     // Auto-select draw mode on mobile
     if (isMobileDevice()) {
-        setMode('draw');
+        if (typeof setMode === 'function') setMode('draw');
     }
 
 })();
