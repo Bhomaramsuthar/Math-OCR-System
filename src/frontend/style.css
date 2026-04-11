@@ -140,15 +140,48 @@ input, textarea, select { font-family: inherit; }
 .sidebar {
     position: fixed;
     top: 0;
-    left: 0;
-    width: var(--sidebar-width);
-    height: 100vh;
+    left: -100%; /* Hidden by default on mobile */
+    width: 280px;
+    height: 100%;
     background: var(--bg-sidebar);
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    z-index: 100;
+    z-index: 1000;
     padding-top: 0;
+    transition: left var(--transition-smooth);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar.open {
+    left: 0;
+}
+
+@media (min-width: 1025px) {
+    .sidebar {
+        left: 0;
+        width: var(--sidebar-width);
+        box-shadow: none;
+    }
+}
+
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-base), visibility var(--transition-base);
+    backdrop-filter: blur(2px);
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
 }
 
 .sidebar-brand {
@@ -170,7 +203,7 @@ input, textarea, select { font-family: inherit; }
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 16px;
+    padding: 12px 16px; /* Increased tap target for mobile */
     border-radius: var(--radius-md);
     color: var(--text-secondary);
     font-size: 0.875rem;
@@ -181,6 +214,7 @@ input, textarea, select { font-family: inherit; }
     width: 100%;
     text-align: left;
     position: relative;
+    min-height: 44px; /* Accessibility standard */
 }
 
 .sidebar-link:hover {
@@ -214,21 +248,73 @@ input, textarea, select { font-family: inherit; }
 .topnav {
     position: fixed;
     top: 0;
-    left: var(--sidebar-width);
+    left: 0; /* Full width on mobile */
     right: 0;
     height: var(--topnav-height);
     background: var(--bg-topnav);
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    padding: 0 32px;
+    justify-content: space-between; /* Space for hamburger logic */
+    padding: 0 20px; /* Reduced for mobile */
     z-index: 90;
 }
 
-.topnav-links {
+@media (min-width: 1025px) {
+    .topnav {
+        left: var(--sidebar-width);
+        padding: 0 32px;
+        justify-content: flex-end; /* Top links aligned right */
+    }
+}
+
+.hamburger-btn {
     display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 8px;
+    min-width: 44px;
+    min-height: 44px; /* Accessibility tap target */
+    margin-left: -8px;
+}
+
+@media (min-width: 1025px) {
+    .hamburger-btn {
+        display: none;
+    }
+}
+
+.hamburger-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+.topnav-brand-mobile {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: block;
+}
+
+@media (min-width: 1025px) {
+    .topnav-brand-mobile {
+        display: none;
+    }
+}
+
+.topnav-links {
+    display: none; /* Hidden on mobile */
     gap: 32px;
+}
+
+@media (min-width: 1025px) {
+    .topnav-links {
+        display: flex; /* Show on desktop */
+    }
 }
 
 .topnav-link {
@@ -240,6 +326,7 @@ input, textarea, select { font-family: inherit; }
     padding: 4px 0;
     transition: color var(--transition-fast);
     position: relative;
+    cursor: pointer;
 }
 
 .topnav-link:hover {
@@ -252,12 +339,19 @@ input, textarea, select { font-family: inherit; }
 
 /* ── Main Content Area ────────────────────────────────────────────── */
 .main-content {
-    margin-left: var(--sidebar-width);
+    margin-left: 0; /* Base is mobile */
     margin-top: var(--topnav-height);
     min-height: calc(100vh - var(--topnav-height));
     display: flex;
     justify-content: center;
-    padding: 40px 40px 80px;
+    padding: 24px 16px 80px; /* Base padding for mobile */
+}
+
+@media (min-width: 1025px) {
+    .main-content {
+        margin-left: var(--sidebar-width);
+        padding: 40px 40px 80px;
+    }
 }
 
 .content-wrapper {
@@ -290,7 +384,7 @@ input, textarea, select { font-family: inherit; }
 }
 
 .page-title {
-    font-size: 2.5rem;
+    font-size: clamp(1.8rem, 5vw + 1rem, 2.5rem);
     font-weight: 800;
     color: var(--text-primary);
     letter-spacing: -0.03em;
@@ -299,7 +393,7 @@ input, textarea, select { font-family: inherit; }
 }
 
 .page-subtitle {
-    font-size: 0.95rem;
+    font-size: clamp(0.85em, 2vw + 0.5rem, 0.95rem);
     color: var(--text-secondary);
     line-height: 1.6;
     max-width: 600px;
@@ -847,8 +941,16 @@ input, textarea, select { font-family: inherit; }
 
 .editor-layout {
     display: flex;
+    flex-direction: column;
     gap: 20px;
-    align-items: flex-start;
+    align-items: stretch;
+}
+
+@media (min-width: 1025px) {
+    .editor-layout {
+        flex-direction: row;
+        align-items: flex-start;
+    }
 }
 
 .editor-textarea-wrapper {
@@ -939,6 +1041,12 @@ input, textarea, select { font-family: inherit; }
     gap: 6px;
 }
 
+@media (min-width: 768px) and (max-width: 1024px) {
+    .symbols-grid {
+        grid-template-columns: repeat(8, 1fr);
+    }
+}
+
 .symbol-btn {
     width: 48px;
     height: 44px;
@@ -1026,9 +1134,19 @@ input, textarea, select { font-family: inherit; }
 
 .history-header {
     display: flex;
-    align-items: flex-start;
+    flex-direction: column;
+    align-items: stretch;
     justify-content: space-between;
     margin-bottom: 28px;
+    gap: 16px;
+}
+
+@media (min-width: 768px) {
+    .history-header {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 0;
+    }
 }
 
 .history-header-actions {
@@ -1041,17 +1159,36 @@ input, textarea, select { font-family: inherit; }
 /* ── Search & Filter Bar ──────────────────────────────────────────── */
 .filter-bar {
     display: flex;
+    flex-direction: column;
     gap: 12px;
     margin-bottom: 28px;
-    flex-wrap: wrap;
+}
+
+@media (min-width: 768px) {
+    .filter-bar {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
 }
 
 /* ── History Grid ─────────────────────────────────────────────────── */
 .history-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr;
     gap: 18px;
     margin-bottom: 32px;
+}
+
+@media (min-width: 768px) {
+    .history-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1025px) {
+    .history-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 .history-card {
@@ -1244,8 +1381,14 @@ input, textarea, select { font-family: inherit; }
 
 .settings-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
     gap: 18px;
+}
+
+@media (min-width: 1025px) {
+    .settings-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 .settings-card-wide {
@@ -1415,55 +1558,10 @@ input, textarea, select { font-family: inherit; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   RESPONSIVE
+   RESPONSIVE (LEGACY)
    ═══════════════════════════════════════════════════════════════════ */
 
-@media (max-width: 1024px) {
-    .history-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .settings-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 768px) {
-    .sidebar {
-        display: none;
-    }
-    .main-content {
-        margin-left: 0;
-        padding: 24px 20px 60px;
-    }
-    .topnav {
-        left: 0;
-    }
-    .history-grid {
-        grid-template-columns: 1fr;
-    }
-    .editor-layout {
-        flex-direction: column;
-    }
-    .quick-symbols {
-        width: 100%;
-    }
-    .symbols-grid {
-        grid-template-columns: repeat(8, 1fr);
-    }
-    .filter-bar {
-        flex-direction: column;
-    }
-    .history-header {
-        flex-direction: column;
-        gap: 16px;
-    }
-    .scale-slider-wrapper {
-        width: 200px;
-    }
-    .page-title {
-        font-size: 1.8rem;
-    }
-}
+/* Replaced by mobile-first min-width media queries above. */
 
 /* ── Scrollbar Styling ────────────────────────────────────────────── */
 ::-webkit-scrollbar {

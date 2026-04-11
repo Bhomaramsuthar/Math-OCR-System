@@ -57,11 +57,37 @@
         // Update document title
         document.title = pageTitles[page] || 'The Editorial';
 
+        // Close sidebar on mobile after navigation
+        if (window.innerWidth <= 1024) {
+            closeMobileMenu();
+        }
+
         // Load history data when navigating to history page
         if (page === 'history') {
             loadHistory();
         }
     }
+
+    // ── Mobile Menu Logic ──────────────────────────────────────────
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+    function toggleMobileMenu() {
+        sidebar.classList.toggle('open');
+        sidebarOverlay.classList.toggle('active');
+    }
+
+    function closeMobileMenu() {
+        if (sidebar && sidebar.classList.contains('open')) {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
+        }
+    }
+
+    if (mobileMenuToggle) mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+    if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeMobileMenu);
+    // ───────────────────────────────────────────────────────────────
 
     // Bind nav clicks
     sidebarLinks.forEach(link => {
