@@ -20,6 +20,12 @@
 
 **The Editorial** is a production-grade, full-stack web application that transforms handwritten or printed mathematical equations into structured LaTeX, then solves them symbolically or numerically — all in real time. Draw on a canvas, upload a photo of your notebook, or type LaTeX directly; the system handles the rest with state-of-the-art vision transformers and a robust computer algebra engine.
 
+<p align="center">
+  <a href="https://math-ocr-system.vercel.app">
+    <img src="https://img.shields.io/badge/🚀_View_Live_Deployed_App-10b981?style=for-the-badge&logoColor=white" alt="View Live App" />
+  </a>
+</p>
+
 ---
 
 ## 🔭 Project Overview
@@ -42,13 +48,13 @@ Under the hood it chains together:
 
 The system follows a clean **three-tier architecture**: a static frontend dashboard, a FastAPI REST backend, and a MongoDB persistence layer.
 
-![Architecture Diagram](assests/images/architecture-dark.png)
+<p align="center"> 
+  <img src="assests/images/architecture-dark.png">   
+</p>
 
+<p align="center">Click to view full interactive architecture</p>
 
 <p align="center">
-  <a href="https://math-ocr-system.vercel.app">
-    <img src="https://img.shields.io/badge/🚀_View_Live_Deployed_App-10b981?style=for-the-badge&logoColor=white" alt="View Live App" />
-  </a>
   <a href="https://bhomaramsuthar.github.io/Math-OCR-System/architecture-diagram.html">
     <img src="https://img.shields.io/badge/🏗️_View_Full_Interactive_Architecture-6366f1?style=for-the-badge&logoColor=white" alt="View Full Architecture" />
   </a>
@@ -56,6 +62,14 @@ The system follows a clean **three-tier architecture**: a static frontend dashbo
 
 
 > 💡 *Click the button above to explore the full interactive architecture diagram — built as a standalone HTML page with animated data flow, API endpoint maps, database schema, and OCR pipeline breakdown.*
+
+---
+
+## 📸 Screenshots & Demo
+
+<a href="https://youtu.be/1cl4qCUgmns">
+   <img src="assests/images/editorial-thumbnail.png" alt="Demo Video" />
+</a>
 
 ---
 
@@ -276,14 +290,6 @@ While **The Editorial** handles a wide range of mathematical expressions, there 
 - [ ] **Matrix & Linear Algebra** — Support for determinants, eigenvalues, matrix multiplication, and systems of linear equations via `sympy.Matrix`.
 - [ ] **Custom Model Fine-Tuning** — Fine-tune the Texify model on a curated dataset of handwritten math to improve recognition accuracy for non-standard notations and regional handwriting styles.
 
-
----
-
-## 📸 Screenshots & Demo
-
-<a href="https://youtu.be/1cl4qCUgmns">
-   <img src="assests/images/workspace-upload-test.png" alt="Demo Video" width="600"/>
-</a>
 
 ---
 
