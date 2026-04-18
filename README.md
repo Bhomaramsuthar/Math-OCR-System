@@ -288,6 +288,7 @@ While **The Editorial** handles a wide range of mathematical expressions, there 
 ![Settings Panel](assests/images/math-ocr-system-settings-panel.png)
 
 <a href="https://youtu.be/1cl4qCUgmns">
+   <img src="assests/images/workspace-upload-test.png" alt="Demo Video" width="600"/>
 </a>
 
 
