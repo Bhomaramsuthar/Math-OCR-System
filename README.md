@@ -281,24 +281,9 @@ While **The Editorial** handles a wide range of mathematical expressions, there 
 
 ## 📸 Screenshots & Demo
 
-![Canvas Panel](assests/images/workspace-draw-test.png)
-![Upload Panel](assests/images/workspace-upload-test.png)
-![Processing/solving Panel](assests/images/workspace-draw-processed-test.png)
-![History Panel](assests/images/math-ocr-system-history-panel.png)
-![Settings Panel](assests/images/math-ocr-system-settings-panel.png)
-
 <a href="https://youtu.be/1cl4qCUgmns">
    <img src="assests/images/workspace-upload-test.png" alt="Demo Video" width="600"/>
 </a>
-
-
-| Feature | Screenshot |
-|---|---|
-| Workspace (Draw Mode) | *`screenshot_workspace_draw.png`* |
-| Workspace (Upload Mode) | *`screenshot_workspace_upload.png`* |
-| Solution Result | *`screenshot_solution.png`* |
-| History Archive | *`screenshot_history.png`* |
-| Settings Panel | *`screenshot_settings.png`* |
 
 ---
 
