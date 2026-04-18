@@ -287,6 +287,9 @@ While **The Editorial** handles a wide range of mathematical expressions, there 
 ![History Panel](assests/images/math-ocr-system-history-panel.png)
 ![Settings Panel](assests/images/math-ocr-system-settings-panel.png)
 
+<a href="https://youtu.be/1cl4qCUgmns">
+</a>
+
 
 | Feature | Screenshot |
 |---|---|
